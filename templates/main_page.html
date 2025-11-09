@@ -10,7 +10,7 @@
       integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
       crossorigin="anonymous">
 
-    <title>My To-Do Board</title>
+    <title>Meine TODOs</title>
 
     <style>
       body { background-color: #f9f9f9; }
@@ -32,7 +32,7 @@
       }
       .todo-checkbox {
         width: 20px; height: 20px; margin: 0;
-        accent-color: #5cb85c; /* optional, nur Farbe des Häkchens */
+        accent-color: #5cb85c;
       }
       .todo-content { font-weight: 600; flex: 1; }
       .navbar-brand { font-weight: 600; }
@@ -50,7 +50,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">TODOs</a>
+          <a class="navbar-brand" href="#">Meine TODOs</a>
         </div>
       </div>
     </nav>
@@ -77,29 +77,19 @@
                   {{ todo.content }}
                   <span class="todo-date">📅 {{ todo.date.strftime('%d.%m.%Y %H:%M') }}</span>
                 </label>
-
-                <!-- Fallback ohne JS -->
-                <noscript>
-                  <button type="submit" class="btn btn-xs btn-default" style="margin-left:10px;">
-                    Als erledigt markieren
-                  </button>
-                </noscript>
               </form>
             </li>
           {% else %}
-            <li class="todo-item">
-              <div class="todo-content">Keine To-dos vorhanden.</div>
-              <span class="todo-date">Füge unten dein erstes To-do hinzu.</span>
-            </li>
+            <div>Nichts zu tun🎉</div>
           {% endfor %}
         </ul>
 
       <div class="todo-form">
         <form action="." method="POST">
           <div class="form-group">
-            <label for="contents">To-do</label>
-            <textarea id="contents" name="contents" class="form-control" rows="3"
-              placeholder="Neues To-do eingeben…" required></textarea>
+            <label for="contents">TODO</label>
+            <inupt id="contents" name="contents" class="form-control"
+              placeholder="Neues TODO eingeben…" required />
           </div>
 
           <div class="form-group">
@@ -109,10 +99,10 @@
             <p class="help-block">Wähle Datum & Uhrzeit (z. B. 07.11.2025 14:30).</p>
           </div>
 
-          <button type="submit" class="btn btn-success">To-do hinzufügen</button>
+          <button type="submit" class="btn btn-success">TODO hinzufügen</button>
         </form>
       </div>
 
-    </div><!-- /.container -->
+    </div>
   </body>
 </html>
