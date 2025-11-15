@@ -17,7 +17,7 @@ def get_conn():
     return pool.get_connection()
 
 # DB-Helper
-def db_execute(sql, params=None, write=False):
+def db_execute(sql, params=None, write=False, single_record=False):
     conn = get_conn()
     try:
         cur = conn.cursor(dictionary=not write)
@@ -25,7 +25,7 @@ def db_execute(sql, params=None, write=False):
         if write:
             conn.commit()
             return None
-        return cur.fetchall()
+        return cur.fetchone() if single_record else cur.fetchall()
     finally:
         try:
             cur.close()
