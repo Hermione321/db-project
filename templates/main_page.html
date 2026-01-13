@@ -47,3 +47,29 @@
       </div>
 {% endblock %}
 
+<h2>Produkt Scanner</h2>
+
+<form method="POST">
+    <input type="text" name="barcode" placeholder="Barcode eingeben..." required>
+    <button type="submit">Suchen</button>
+</form>
+
+{% if product %}
+    <h3>{{ product.name }}</h3>
+
+    <ul>
+        {% for material in product.materials %}
+            {% if material.present %}
+                <li class="material-{{ loop.index }}">
+                    {{ material.name }} 
+                </li>
+            {% else %}
+                <li class="material-none">
+                    {{ material.name }} 
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endif %}
+
+

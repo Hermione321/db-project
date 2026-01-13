@@ -135,6 +135,8 @@ def complete():
     db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
     return redirect(url_for("index"))
 
+#Ab hier neuer code
+
 @app.route("/product", methods=["GET", "POST"])
 def product():
     product = None
@@ -160,4 +162,21 @@ def product():
 if __name__ == "__main__":
     # Bind to 0.0.0.0 so the container's port is reachable from the host
     app.run(host="0.0.0.0", port=5000)
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    product = None
+
+    if request.method == "POST":
+        barcode = request.form.get("barcode")
+        category = BARCODES.get(barcode)
+
+        if category:
+            product = {
+                "name": category,
+                "materials": CATEGORIES[category]
+            }
+
+    return render_template("home.html", product=product)
+
 
