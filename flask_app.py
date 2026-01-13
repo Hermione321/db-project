@@ -8,7 +8,6 @@ from db import db_read, db_write
 from auth import login_manager, authenticate, register_user
 from flask_login import login_user, logout_user, login_required, current_user
 import logging
-from categories import CATEGORIES, BARCODES
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -40,28 +39,28 @@ def is_valid_signature(x_hub_signature, data, private_key):
 @app.post('/update_server')
 def webhook():
     x_hub_signature = request.headers.get('X-Hub-Signature')
-    if not x_hub_signature or not W_SECRET:
-        return 'Unauthorized', 401
-
     if is_valid_signature(x_hub_signature, request.data, W_SECRET):
         repo = git.Repo('./mysite')
         origin = repo.remotes.origin
         origin.pull()
         return 'Updated PythonAnywhere successfully', 200
-    return 'Unauthorized', 401
+    return 'Unathorized', 401
 
 # Auth routes
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
+
     if request.method == "POST":
         user = authenticate(
             request.form["username"],
             request.form["password"]
         )
+
         if user:
             login_user(user)
             return redirect(url_for("index"))
+
         error = "Benutzername oder Passwort ist falsch."
 
     return render_template(
@@ -75,15 +74,19 @@ def login():
         footer_link_label="Registrieren"
     )
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     error = None
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+
         ok = register_user(username, password)
         if ok:
             return redirect(url_for("login"))
+
         error = "Benutzername existiert bereits."
 
     return render_template(
@@ -103,6 +106,23 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
+
+
+# App routes
+@app.route("/", methods=["GET", "POST"])
+@login_required
+def index():
+    # GET
+    if request.method == "GET":
+        todos = db_read("SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due", (current_user.id,))
+        return render_template("main_page.html", todos=todos)
+
+    # POST
+    content = request.form["contents"]
+    due = request.form["due_at"]
+    db_write("INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)", (current_user.id, content, due, ))
+    return redirect(url_for("index"))
+
 @app.post("/complete")
 @login_required
 def complete():
@@ -110,146 +130,5 @@ def complete():
     db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
     return redirect(url_for("index"))
 
-# --------------------------------------------------------
-# EINZIGE INDEX-ROUTE (Hauptseite)
-# --------------------------------------------------------
-@app.route("/", methods=["GET", "POST"])
-@login_required
-def index():
-    # =========================
-    # 1. Produkt-Variable initialisieren
-    # =========================
-    product = None
-
-    # =========================
-    # 2. Prüfen, welches Formular gesendet wurde
-    # =========================
-    form_type = request.form.get("form_type")
-
-    # =========================
-    # 3. Barcode-Formular bearbeiten
-    # =========================
-    if form_type == "barcode":
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    # =========================
-    # 4. Todo-Formular bearbeiten
-    # =========================
-    elif form_type == "todo":
-        content = request.form.get("contents")
-        due = request.form.get("due_at")
-        if content and due:  # kleine Sicherheitsprüfung
-            db_write(
-                "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-                (current_user.id, content, due)
-            )
-        return redirect(url_for("index"))
-
-    # =========================
-    # 5. Todos laden
-    # =========================
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    # =========================
-    # 6. Mainpage rendern
-    # =========================
-    return render_template("main_page.html", todos=todos, product=product)
-
-
-    product = None
-
-    # Prüfen, welches Formular gesendet wurde
-    form_type = request.form.get("form_type")
-
-    if form_type == "barcode":
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    elif form_type == "todo":
-        content = request.form.get("contents")
-        due = request.form.get("due_at")
-        db_write(
-            "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-            (current_user.id, content, due,)
-        )
-        return redirect(url_for("index"))
-
-    # Todos laden
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    return render_template("main_page.html", todos=todos, product=product)
-
-
-    product = None
-
-    # Barcode wurde gesendet
-    if "barcode" in request.form:
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    # Todo wurde gesendet
-    if "contents" in request.form:
-        content = request.form["contents"]
-        due = request.form["due_at"]
-        db_write(
-            "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-            (current_user.id, content, due,)
-        )
-        return redirect(url_for("index"))
-
-    # Todos laden
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    return render_template(
-        "main_page.html",
-        todos=todos,
-        product=product
-    )
-
-# --------------------------------------------------------
 if __name__ == "__main__":
     app.run()
-
-
-
