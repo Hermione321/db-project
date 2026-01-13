@@ -119,6 +119,43 @@ def index():
 
     product = None
 
+    # Prüfen, welches Formular gesendet wurde
+    form_type = request.form.get("form_type")
+
+    if form_type == "barcode":
+        barcode = request.form.get("barcode")
+        category_name = BARCODES.get(barcode)
+        if category_name:
+            product = {
+                "name": category_name,
+                "materials": CATEGORIES.get(category_name, [])
+            }
+        else:
+            product = {
+                "name": "Unbekanntes Produkt",
+                "materials": []
+            }
+
+    elif form_type == "todo":
+        content = request.form.get("contents")
+        due = request.form.get("due_at")
+        db_write(
+            "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
+            (current_user.id, content, due,)
+        )
+        return redirect(url_for("index"))
+
+    # Todos laden
+    todos = db_read(
+        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
+        (current_user.id,)
+    )
+
+    return render_template("main_page.html", todos=todos, product=product)
+
+
+    product = None
+
     # Barcode wurde gesendet
     if "barcode" in request.form:
         barcode = request.form.get("barcode")

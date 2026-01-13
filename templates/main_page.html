@@ -1,75 +1,88 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Meine Mainpage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Farben für Materialien */
+        .material-1 { color: #1e90ff; }  /* PET */
+        .material-2 { color: #f1c40f; }  /* Aluminium */
+        .material-3 { color: #27ae60; }  /* Glas */
+        .material-4 { color: #8e6e53; }  /* Papier */
+        .material-none { color: gray; }
 
-{% block content %}
-    <ul class="todo-list">
-          {% for todo in todos %}
-            <li class="todo-item">
-              <form action="/complete" method="POST" class="todo-complete-form">
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1, h2 { color: #333; }
+        form { margin-bottom: 20px; }
+        input { padding: 5px; margin-right: 10px; }
+        button { padding: 5px 10px; }
+        ul { list-style: none; padding-left: 0; }
+        li { margin-bottom: 5px; }
+        .todo-item { display: flex; align-items: center; }
+    </style>
+</head>
+<body>
+    <h1>Willkommen auf deiner Mainpage</h1>
 
-                <input type="hidden" name="id" value="{{ todo.id }}">
+    <!-- ===================== -->
+    <!-- TODO-FORMULAR -->
+    <!-- ===================== -->
+    <h2>Todo hinzufügen</h2>
+    <form method="POST">
+        <input type="hidden" name="form_type" value="todo">
+        <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
+        <input type="datetime-local" name="due_at" required>
+        <button type="submit">Hinzufügen</button>
+    </form>
 
-                <!-- Checkbox triggert Submit -->
-                <input
-                  type="checkbox"
-                  class="todo-checkbox"
-                  id="todo-{{ todo.id }}"
-                  name="complete"
-                  value="1"
-                  onchange="this.form.submit()">
-
-                <label for="todo-{{ todo.id }}" class="todo-content">
-                  {{ todo.content }}
-                  <span class="todo-date">📅 {{ todo.due.strftime('%d.%m.%Y %H:%M') }}</span>
-                </label>
-              </form>
-            </li>
-          {% else %}
-            <div>Nichts zu tun🎉</div>
-          {% endfor %}
+    <!-- Todos anzeigen -->
+    {% if todos %}
+        <h3>Deine Todos:</h3>
+        <ul>
+            {% for todo in todos %}
+                <li class="todo-item">
+                    <form action="/complete" method="POST">
+                        <input type="hidden" name="id" value="{{ todo.id }}">
+                        <input type="checkbox" onchange="this.form.submit()">
+                        {{ todo.content }} (Fällig: {{ todo.due.strftime('%d.%m.%Y %H:%M') }})
+                    </form>
+                </li>
+            {% endfor %}
         </ul>
+    {% else %}
+        <p>Keine Todos vorhanden 🎉</p>
+    {% endif %}
 
-      <div class="todo-form">
-        <form action="." method="POST">
-          <div class="form-group">
-            <label for="contents">TODO</label>
-            <input type="text" id="contents" name="contents" class="form-control"
-              placeholder="Neues TODO eingeben…" required />
-          </div>
+    <!-- ===================== -->
+    <!-- BARCODE-FORMULAR -->
+    <!-- ===================== -->
+    <h2>Produkt scannen</h2>
+    <form method="POST">
+        <input type="hidden" name="form_type" value="barcode">
+        <input type="text" name="barcode" placeholder="Barcode eingeben" required>
+        <button type="submit">Suchen</button>
+    </form>
 
-          <div class="form-group">
-            <label for="due_at">Fällig am</label>
-            <input id="due_at" name="due_at" type="datetime-local" class="form-control" required>
-            <p class="help-block">Wähle Datum & Uhrzeit (z. B. 07.11.2025 14:30).</p>
-          </div>
+    <!-- PRODUKTANZEIGE -->
+    {% if product %}
+        <h3>{{ product.name }}</h3>
+        {% if product.materials %}
+            <ul>
+                {% for material in product.materials %}
+                    {% if material.present %}
+                        <li class="material-{{ loop.index }}">{{ material.name }} ✅</li>
+                    {% else %}
+                        <li class="material-none">{{ material.name }} ❌</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Keine Materialinformationen verfügbar.</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
 
-          <button type="submit" class="btn btn-primary">Hinzufügen</button>
-        </form>
-      </div>
-{% endblock %}
-
-<h2>Produkt Scanner</h2>
-
-<form method="POST">
-    <input type="text" name="barcode" placeholder="Barcode eingeben..." required>
-    <button type="submit">Suchen</button>
-</form>
-
-{% if product %}
-    <h3>{{ product.name }}</h3>
-
-    <ul>
-        {% for material in product.materials %}
-            {% if material.present %}
-                <li class="material-{{ loop.index }}">
-                    {{ material.name }} 
-                </li>
-            {% else %}
-                <li class="material-none">
-                    {{ material.name }} 
-                </li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-{% endif %}
 
 
