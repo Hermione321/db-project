@@ -4,6 +4,7 @@ app = Flask(__name__)
 
 points = 0
 
+
 POINTS_PER_WASTE = {
     "pet": 5,
     "glas": 3,
