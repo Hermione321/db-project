@@ -8,7 +8,8 @@ points = 0
 POINTS_PER_WASTE = {
     "pet": 5,
     "glas": 3,
-    "papier": 2
+    "alluminium": 2,
+    "tetrapack" : 1
 }
 
 @app.route("/", methods=["GET", "POST"])
