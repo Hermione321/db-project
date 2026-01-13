@@ -18,12 +18,12 @@
         <ul>
             {% for material in product.materials %}
                 {% if material.present %}
-                    <li style="color: {{ material.color }};">
-                        Dieses Produkt enthält {{ material.name }} ✅
+                    <li :style="{ color: material.color }">
+                        Dieses Produkt enthält {{ material.name }} 
                     </li>
                 {% else %}
                     <li style="color: gray;">
-                        {{ material.name }} ist nicht enthalten ❌
+                        {{ material.name }} ist nicht enthalten 
                     </li>
                 {% endif %}
             {% endfor %}
