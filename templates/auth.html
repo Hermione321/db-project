@@ -2,29 +2,104 @@
 
 {% block content %}
 <style>
+  body {
+    background: #f0f8ff; /* zartes Babyblau im Hintergrund */
+    font-family: Arial, sans-serif;
+  }
+
   .auth-wrapper {
     max-width: 400px;
-    margin: 50px auto;
+    margin: 60px auto;
+    padding: 10px;
   }
+
   .auth-card {
     background: #ffffff;
-    padding: 30px 30px 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    padding: 35px 30px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border: 2px solid #a0cfff; /* Babyblauer Rand */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+
+  .auth-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  }
+
   .auth-title {
-    font-size: 26px;
-    font-weight: 600;
+    font-size: 28px;
+    font-weight: 700;
     margin-top: 0;
-    margin-bottom: 20px;
-  }
-  .error { color: red; margin-bottom: 15px; }
-  .auth-footer-text {
-    font-size: 13px;
-    margin-top: 15px;
+    margin-bottom: 25px;
+    color: #1e90ff; /* schönes Blau für Überschrift */
     text-align: center;
   }
-  .auth-footer-text a { font-weight: 600; }
+
+  .error {
+    color: #ff4d4f;
+    background: #ffe6e6;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-control:focus {
+    border-color: #1e90ff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(30,144,255,0.3);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #1e90ff; /* kräftiges Babyblau für Button */
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+
+  .btn:hover {
+    background: #0f78d1;
+    transform: translateY(-1px);
+  }
+
+  .auth-footer-text {
+    font-size: 13px;
+    margin-top: 20px;
+    text-align: center;
+    color: #555;
+  }
+
+  .auth-footer-text a {
+    font-weight: 600;
+    color: #1e90ff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .auth-footer-text a:hover {
+    color: #0f78d1;
+    text-decoration: underline;
+  }
 </style>
 
 <div class="auth-wrapper">
@@ -32,16 +107,19 @@
 
     <h1 class="auth-title">{{ title }}</h1>
 
+    <!-- Fehler anzeigen -->
     {% if error %}
       <p class="error">{{ error }}</p>
     {% endif %}
 
+    <!-- Formular für Login oder Registrierung -->
     <form action="{{ action }}" method="post">
       <div class="form-group">
         <label for="username">Benutzername</label>
         <input
           type="text"
           class="form-control"
+          id="username"
           name="username"
           placeholder="Benutzername"
           required
@@ -53,17 +131,19 @@
         <input
           type="password"
           class="form-control"
+          id="password"
           name="password"
           placeholder="Passwort"
           required
         >
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block">
+      <button type="submit" class="btn">
         {{ button_label }}
       </button>
     </form>
 
+    <!-- Footer-Link (z.B. Registrierung oder Login) -->
     {% if footer_text %}
       <p class="auth-footer-text">
         {{ footer_text }}

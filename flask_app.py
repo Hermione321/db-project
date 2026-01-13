@@ -116,6 +116,60 @@ def complete():
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
+    # =========================
+    # 1. Produkt-Variable initialisieren
+    # =========================
+    product = None
+
+    # =========================
+    # 2. Prüfen, welches Formular gesendet wurde
+    # =========================
+    form_type = request.form.get("form_type")
+
+    # =========================
+    # 3. Barcode-Formular bearbeiten
+    # =========================
+    if form_type == "barcode":
+        barcode = request.form.get("barcode")
+        category_name = BARCODES.get(barcode)
+
+        if category_name:
+            product = {
+                "name": category_name,
+                "materials": CATEGORIES.get(category_name, [])
+            }
+        else:
+            product = {
+                "name": "Unbekanntes Produkt",
+                "materials": []
+            }
+
+    # =========================
+    # 4. Todo-Formular bearbeiten
+    # =========================
+    elif form_type == "todo":
+        content = request.form.get("contents")
+        due = request.form.get("due_at")
+        if content and due:  # kleine Sicherheitsprüfung
+            db_write(
+                "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
+                (current_user.id, content, due)
+            )
+        return redirect(url_for("index"))
+
+    # =========================
+    # 5. Todos laden
+    # =========================
+    todos = db_read(
+        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
+        (current_user.id,)
+    )
+
+    # =========================
+    # 6. Mainpage rendern
+    # =========================
+    return render_template("main_page.html", todos=todos, product=product)
+
 
     product = None
 
