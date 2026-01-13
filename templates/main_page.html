@@ -1,109 +1,155 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Meine Mainpage</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Farben für Materialien */
-        .material-1 { color: #1e90ff; }  /* PET */
-        .material-2 { color: #f1c40f; }  /* Aluminium */
-        .material-3 { color: #27ae60; }  /* Glas */
-        .material-4 { color: #8e6e53; }  /* Papier */
-        .material-none { color: gray; }
+{% extends "base.html" %}
 
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1, h2 { color: #333; }
-        form { margin-bottom: 20px; }
-        input { padding: 5px; margin-right: 10px; }
-        button { padding: 5px 10px; }
-        ul { list-style: none; padding-left: 0; }
-        li { margin-bottom: 5px; }
-        .todo-item { display: flex; align-items: center; }
-    </style>
-</head>
-<body>
-    <h1>Willkommen auf deiner Mainpage</h1>
+{% block content %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    padding: 20px;
+  }
 
+  h1, h2, h3 {
+    color: #333;
+  }
 
-    <!-- ===================== -->
-    <!-- BARCODE-FORMULAR -->
-    <!-- ===================== -->
-    <h2>Produkt scannen</h2>
-    <form method="POST">
-        <input type="hidden" name="form_type" value="barcode">
-        <input type="text" name="barcode" placeholder="Barcode eingeben" required>
-        <button type="submit">Suchen</button>
-    </form>
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
 
-    <!-- PRODUKTANZEIGE -->
-    {% if product %}
-        <h3>{{ product.name }}</h3>
-        {% if product.materials %}
-            <ul>
-                {% for material in product.materials %}
-                    {% if material.present %}
-                        <li class="material-{{ loop.index }}">{{ material.name }} ✅</li>
-                    {% else %}
-                        <li class="material-none">{{ material.name }} ❌</li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Keine Materialinformationen verfügbar.</p>
-        {% endif %}
+  .card h2 {
+    margin-top: 0;
+  }
+
+  input, button {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  button {
+    background-color: #89CFF0; /* Babyblau */
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #5bb0e3;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Materialfarben */
+  .material-1 { color: #1e90ff; }  /* PET */
+  .material-2 { color: #f1c40f; }  /* Aluminium */
+  .material-3 { color: #27ae60; }  /* Glas */
+  .material-4 { color: #8e6e53; }  /* Papier */
+  .material-none { color: gray; }
+
+  .points {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0077b6;
+  }
+</style>
+
+<h1>♻️ TrashUp – Abfall-App</h1>
+
+<!-- ===================== -->
+<!-- TODO-FORMULAR -->
+<!-- ===================== -->
+<div class="card">
+  <h2>Deine Todos</h2>
+  <form method="POST">
+    <input type="hidden" name="form_type" value="todo">
+    <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
+    <input type="datetime-local" name="due_at" required>
+    <button type="submit">Hinzufügen</button>
+  </form>
+
+  {% if todos %}
+    <ul>
+      {% for todo in todos %}
+        <li class="todo-item">
+          <form action="/complete" method="POST">
+            <input type="hidden" name="id" value="{{ todo.id }}">
+            <input type="checkbox" onchange="this.form.submit()">
+            {{ todo.content }} (Fällig: {{ todo.due.strftime('%d.%m.%Y %H:%M') }})
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Keine Todos vorhanden 🎉</p>
+  {% endif %}
+</div>
+
+<!-- ===================== -->
+<!-- BARCODE-SCANNER & MATERIALIEN -->
+<!-- ===================== -->
+<div class="card">
+  <h2>Produkt scannen</h2>
+  <form method="POST">
+    <input type="hidden" name="form_type" value="barcode">
+    <input type="text" name="barcode" placeholder="Barcode eingeben" required>
+    <button type="submit">Suchen</button>
+  </form>
+
+  {% if product %}
+    <h3>{{ product.name }}</h3>
+    {% if product.materials %}
+      <ul>
+        {% for material in product.materials %}
+          {% if material.present %}
+            <li class="material-{{ loop.index }}">{{ material.name }} ✅</li>
+          {% else %}
+            <li class="material-none">{{ material.name }} ❌</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Keine Materialinformationen verfügbar.</p>
     {% endif %}
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Abfall Punkte App</title>
-</head>
-<body>
+  {% endif %}
+</div>
 
-    <h1>♻️ Abfall richtig entsorgen</h1>
+<!-- ===================== -->
+<!-- PUNKTE-SYSTEM -->
+<!-- ===================== -->
+<div class="card">
+  <h2>Aktueller Punktestand:</h2>
+  <p class="points">{{ points or 0 }} Punkte</p>
 
-    <h2>Aktueller Punktestand:</h2>
-    <p style="font-size: 24px;"><strong>{{ points }}</strong> Punkte</p>
-
-    <hr>
-
-    <h3>Wähl dis Abfallprodukt:</h3>
-
-    <form method="POST">
-        <button type="submit" name="waste" value="Pet">
-            PET-Flasche (+5)
-        </button>
-    </form>
-
-    <br>
-
-    <form method="POST">
-        <button type="submit" name="waste" value="Glas">
-            Glasflasche (+3)
-        </button>
-    </form>
-
-    <br>
-
-    <form method="POST">
-        <button type="submit" name="waste" value="Aluminium">
-            Aluminium (+2)
-        </button>
-    </form>
-
-    <br>
-
-    <form method="POST">
-        <button type="submit" name="waste" value="Tetrapack">
-            Tetrapack (+1)
-        </button>
-    </form>
-
-</body>
-</html>
-
-
-
+  <h3>Abfall auswählen:</h3>
+  <form method="POST" style="display:inline-block;">
+    <button type="submit" name="waste" value="PET">PET-Flasche (+5)</button>
+  </form>
+  <form method="POST" style="display:inline-block;">
+    <button type="submit" name="waste" value="Glas">Glasflasche (+3)</button>
+  </form>
+  <form method="POST" style="display:inline-block;">
+    <button type="submit" name="waste" value="Aluminium">Aluminium (+2)</button>
+  </form>
+  <form method="POST" style="display:inline-block;">
+    <button type="submit" name="waste" value="Tetrapack">Tetrapack (+1)</button>
+  </form>
+</div>
+{% endblock %}
