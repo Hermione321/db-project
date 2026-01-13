@@ -8,6 +8,7 @@ from db import db_read, db_write
 from auth import login_manager, authenticate, register_user
 from flask_login import login_user, logout_user, login_required, current_user
 import logging
+from categories import CATEGORIES, BARCODES
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -39,6 +40,10 @@ def is_valid_signature(x_hub_signature, data, private_key):
 @app.post('/update_server')
 def webhook():
     x_hub_signature = request.headers.get('X-Hub-Signature')
+    # Basic validation to avoid None errors
+    if not x_hub_signature or not W_SECRET:
+        return 'Unauthorized', 401
+
     if is_valid_signature(x_hub_signature, request.data, W_SECRET):
         repo = git.Repo('./mysite')
         origin = repo.remotes.origin
@@ -130,5 +135,29 @@ def complete():
     db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
     return redirect(url_for("index"))
 
+@app.route("/product", methods=["GET", "POST"])
+def product():
+    product = None
+
+    if request.method == "POST":
+        barcode = request.form.get("barcode")
+        category_name = BARCODES.get(barcode)
+
+        if category_name:
+            product = {
+                "name": category_name,
+                "materials": CATEGORIES.get(category_name, [])
+            }
+        else:
+            product = {
+                "name": "Unbekanntes Produkt",
+                "materials": []
+            }
+
+    return render_template("index.html", product=product)
+
+
 if __name__ == "__main__":
-    app.run()
+    # Bind to 0.0.0.0 so the container's port is reachable from the host
+    app.run(host="0.0.0.0", port=5000)
+

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Produkt Materialien</title>
+</head>
+<body>
+    <h1>Barcode Scanner</h1>
+
+    <form method="POST">
+        <input type="text" name="barcode" placeholder="Barcode eingeben..." required>
+        <button type="submit">Produkt suchen</button>
+    </form>
+    
+
+    {% if product %}
+        <h2>{{ product.name }}</h2>
+        <ul>
+            {% for material in product.materials %}
+                {% if material.present %}
+                    <li style="color: {{ material.color }};">
+                        Dieses Produkt enthält {{ material.name }} ✅
+                    </li>
+                {% else %}
+                    <li style="color: gray;">
+                        {{ material.name }} ist nicht enthalten ❌
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
