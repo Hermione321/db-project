@@ -25,34 +25,6 @@
 <body>
     <h1>Willkommen auf deiner Mainpage</h1>
 
-    <!-- ===================== -->
-    <!-- TODO-FORMULAR -->
-    <!-- ===================== -->
-    <h2>Todo hinzufügen</h2>
-    <form method="POST">
-        <input type="hidden" name="form_type" value="todo">
-        <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
-        <input type="datetime-local" name="due_at" required>
-        <button type="submit">Hinzufügen</button>
-    </form>
-
-    <!-- Todos anzeigen -->
-    {% if todos %}
-        <h3>Deine Todos:</h3>
-        <ul>
-            {% for todo in todos %}
-                <li class="todo-item">
-                    <form action="/complete" method="POST">
-                        <input type="hidden" name="id" value="{{ todo.id }}">
-                        <input type="checkbox" onchange="this.form.submit()">
-                        {{ todo.content }} (Fällig: {{ todo.due.strftime('%d.%m.%Y %H:%M') }})
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Todos vorhanden 🎉</p>
-    {% endif %}
 
     <!-- ===================== -->
     <!-- BARCODE-FORMULAR -->
@@ -81,6 +53,55 @@
             <p>Keine Materialinformationen verfügbar.</p>
         {% endif %}
     {% endif %}
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Abfall Punkte App</title>
+</head>
+<body>
+
+    <h1>♻️ Abfall richtig entsorgen</h1>
+
+    <h2>Aktueller Punktestand:</h2>
+    <p style="font-size: 24px;"><strong>{{ points }}</strong> Punkte</p>
+
+    <hr>
+
+    <h3>Wähl dis Abfallprodukt:</h3>
+
+    <form method="POST">
+        <button type="submit" name="waste" value="Pet">
+            PET-Flasche (+5)
+        </button>
+    </form>
+
+    <br>
+
+    <form method="POST">
+        <button type="submit" name="waste" value="Glas">
+            Glasflasche (+3)
+        </button>
+    </form>
+
+    <br>
+
+    <form method="POST">
+        <button type="submit" name="waste" value="Aluminium">
+            Aluminium (+2)
+        </button>
+    </form>
+
+    <br>
+
+    <form method="POST">
+        <button type="submit" name="waste" value="Tetrapack">
+            Tetrapack (+1)
+        </button>
+    </form>
+
 </body>
 </html>
 
