@@ -205,6 +205,11 @@ def points_page():
 
     return render_template("points.html", points=points)
 
+@app.route("/categories", methods=["GET", "POST"])
+@login_required
+def categories():
+    return "<h1>Kategorien</h1>
+
 # =========================
 if __name__ == "__main__":
     app.run()
