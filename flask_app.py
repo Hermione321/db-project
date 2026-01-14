@@ -28,6 +28,20 @@ app.secret_key = "supersecret"
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+
+# =========================
+# PUNKTE-SYSTEM
+# =========================
+points = 0
+
+POINTS_PER_WASTE = {
+    "pet": 5,
+    "glas": 3,
+    "aluminium": 2,
+    "tetrapak": 1
+}
+
+
 # DON'T CHANGE
 def is_valid_signature(x_hub_signature, data, private_key):
     hash_algorithm, github_signature = x_hub_signature.split('=', 1)
@@ -35,6 +49,7 @@ def is_valid_signature(x_hub_signature, data, private_key):
     encoded_key = bytes(private_key, 'latin-1')
     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
     return hmac.compare_digest(mac.hexdigest(), github_signature)
+
 
 # DON'T CHANGE
 @app.post('/update_server')
@@ -50,7 +65,10 @@ def webhook():
         return 'Updated PythonAnywhere successfully', 200
     return 'Unauthorized', 401
 
-# Auth routes
+
+# =========================
+# AUTH
+# =========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
@@ -75,6 +93,7 @@ def login():
         footer_link_label="Registrieren"
     )
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     error = None
@@ -97,42 +116,39 @@ def register():
         footer_link_label="Einloggen"
     )
 
+
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("index"))
 
+
+# =========================
+# TODO COMPLETE
+# =========================
 @app.post("/complete")
 @login_required
 def complete():
     todo_id = request.form.get("id")
-    db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
+    db_write(
+        "DELETE FROM todos WHERE user_id=%s AND id=%s",
+        (current_user.id, todo_id,)
+    )
     return redirect(url_for("index"))
 
-# --------------------------------------------------------
-# EINZIGE INDEX-ROUTE (Hauptseite)
-# --------------------------------------------------------
+
+# =========================
+# MAINPAGE
+# =========================
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
 
-# --------------------------------------------------------
-# EINZIGE INDEX-ROUTE (Hauptseite)
-# --------------------------------------------------------
-    # =========================
-    # 1. Produkt-Variable initialisieren
-    # =========================
     product = None
-
-    # =========================
-    # 2. Prüfen, welches Formular gesendet wurde
-    # =========================
     form_type = request.form.get("form_type")
 
-    # =========================
-    # 3. Barcode-Formular bearbeiten
-    # =========================
+    # BARCODE
     if form_type == "barcode":
         barcode = request.form.get("barcode")
         category_name = BARCODES.get(barcode)
@@ -148,152 +164,19 @@ def index():
                 "materials": []
             }
 
-    # =========================
-    # 4. Todo-Formular bearbeiten
-    # =========================
+    # TODO
     elif form_type == "todo":
         content = request.form.get("contents")
         due = request.form.get("due_at")
-        if content and due:  # Sicherheitsprüfung
+
+        if content and due:
             db_write(
                 "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
                 (current_user.id, content, due)
             )
         return redirect(url_for("index"))
 
-    # =========================
-    # 5. Todos laden
-    # =========================
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    # =========================
-    # 6. Mainpage rendern
-    # =========================
-    return render_template("main_page.html", todos=todos, product=product)
-
-    # =========================
-    # 1. Produkt-Variable initialisieren
-    # =========================
-    product = None
-
-    # =========================
-    # 2. Prüfen, welches Formular gesendet wurde
-    # =========================
-    form_type = request.form.get("form_type")
-
-    # =========================
-    # 3. Barcode-Formular bearbeiten
-    # =========================
-    if form_type == "barcode":
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    # =========================
-    # 4. Todo-Formular bearbeiten
-    # =========================
-    elif form_type == "todo":
-        content = request.form.get("contents")
-        due = request.form.get("due_at")
-        if content and due:  # kleine Sicherheitsprüfung
-            db_write(
-                "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-                (current_user.id, content, due)
-            )
-        return redirect(url_for("index"))
-
-    # =========================
-    # 5. Todos laden
-    # =========================
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    # =========================
-    # 6. Mainpage rendern
-    # =========================
-    return render_template("main_page.html", todos=todos, product=product)
-
-
-    product = None
-
-    # Prüfen, welches Formular gesendet wurde
-    form_type = request.form.get("form_type")
-
-    if form_type == "barcode":
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    elif form_type == "todo":
-        content = request.form.get("contents")
-        due = request.form.get("due_at")
-        db_write(
-            "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-            (current_user.id, content, due,)
-        )
-        return redirect(url_for("index"))
-
-    # Todos laden
-    todos = db_read(
-        "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
-        (current_user.id,)
-    )
-
-    return render_template("main_page.html", todos=todos, product=product)
-
-
-    product = None
-
-    # Barcode wurde gesendet
-    if "barcode" in request.form:
-        barcode = request.form.get("barcode")
-        category_name = BARCODES.get(barcode)
-        if category_name:
-            product = {
-                "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
-            }
-        else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
-
-    # Todo wurde gesendet
-    if "contents" in request.form:
-        content = request.form["contents"]
-        due = request.form["due_at"]
-        db_write(
-            "INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)",
-            (current_user.id, content, due,)
-        )
-        return redirect(url_for("index"))
-
-    # Todos laden
+    # TODOS LADEN
     todos = db_read(
         "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
         (current_user.id,)
@@ -305,6 +188,37 @@ def index():
         product=product
     )
 
-# --------------------------------------------------------
+
+# =========================
+# POINTS PAGE
+# =========================
+@app.route("/points", methods=["GET", "POST"])
+@login_required
+def points_page():
+    global points
+
+    if request.method == "POST":
+        waste = request.form.get("waste", "").lower()
+        if waste in POINTS_PER_WASTE:
+            points += POINTS_PER_WASTE[waste]
+        return redirect(url_for("points_page"))
+
+    return render_template("points.html", points=points)
+
+@app.route("/points", methods=["GET", "POST"])
+def points_page():
+    global points
+
+    if request.method == "POST":
+        waste = request.form.get("waste", "").lower()
+        if waste in POINTS_PER_WASTE:
+            points += POINTS_PER_WASTE[waste]
+        return redirect(url_for("points_page"))
+
+    return render_template("points_page.html", points=points)
+
+
+
+# =========================
 if __name__ == "__main__":
     app.run()

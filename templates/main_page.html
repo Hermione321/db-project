@@ -64,12 +64,6 @@
   .material-4 { color: #8e6e53; }  /* Papier */
   .material-none { color: gray; }
 
-  .points {
-    font-size: 24px;
-    font-weight: bold;
-    color: #0077b6;
-  }
-
   /* Kategorien-Link */
   .link-button {
     display: inline-block;
@@ -84,14 +78,6 @@
 
   .link-button:hover {
     background-color: #5bb0e3;
-  }
-
-  /* Flexbox für Abfall-Buttons */
-  .waste-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
   }
 </style>
 
@@ -149,48 +135,21 @@
           {% endif %}
         {% endfor %}
       </ul>
-  
+
       {% if alternative %}
-    <p>
-      🌱 Umweltfreundlichere Alternative:
-      <strong>{{ alternative[0] }}</strong>
-      (Materialanzahl: {{ alternative[1] }})
-    </p>
-  {% else %}
-    <p>✅ Dieses Produkt ist bereits sehr umweltfreundlich.</p>
-  {% endif %}
-  
+        <p>
+          🌱 Umweltfreundlichere Alternative:
+          <strong>{{ alternative[0] }}</strong>
+          (Materialanzahl: {{ alternative[1] }})
+        </p>
+      {% else %}
+        <p>✅ Dieses Produkt ist bereits sehr umweltfreundlich.</p>
+      {% endif %}
+
     {% else %}
       <p>Keine Materialinformationen verfügbar.</p>
     {% endif %}
   {% endif %}
-</div>
-
-<!-- ===================== -->
-<!-- PUNKTE-SYSTEM & ABFALL-AUSWAHL -->
-<!-- ===================== -->
-<div class="card">
-  <h2>Aktueller Punktestand:</h2>
-  <p class="points">{{ points or 0 }} Punkte</p>
-
-  <h3>Abfall auswählen:</h3>
-  <div class="waste-buttons">
-    <form method="POST">
-      <button type="submit" name="waste" value="pet">PET-Flasche (+5)</button>
-    </form>
-
-    <form method="POST">
-      <button type="submit" name="waste" value="glas">Glasflasche (+3)</button>
-    </form>
-
-    <form method="POST">
-      <button type="submit" name="waste" value="aluminium">Aluminium (+2)</button>
-    </form>
-
-    <form method="POST">
-      <button type="submit" name="waste" value="tetrapak">Tetrapack (+1)</button>
-    </form>
-  </div>
 </div>
 
 <!-- ===================== -->
@@ -199,6 +158,14 @@
 <div class="card">
   <h2>Kategorien ansehen</h2>
   <a class="link-button" href="{{ url_for('categories') }}">Zu den Kategorien</a>
+</div>
+
+<!-- ===================== -->
+<!-- LINK ZUR POINTS-SEITE -->
+<!-- ===================== -->
+<div class="card">
+  <h2>Deine Pluspunkte ansehen</h2>
+  <a class="link-button" href="{{ url_for('points_page') }}">Zu den Pluspunkten</a>
 </div>
 
 {% endblock %}
