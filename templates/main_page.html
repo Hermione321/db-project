@@ -69,6 +69,22 @@
     font-weight: bold;
     color: #0077b6;
   }
+
+  /* Kategorien-Link */
+  .link-button {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-top: 10px;
+    background-color: #89CFF0;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  }
+
+  .link-button:hover {
+    background-color: #5bb0e3;
+  }
 </style>
 
 <h1>♻️ TrashUp – Abfall-App</h1>
@@ -152,4 +168,13 @@
     <button type="submit" name="waste" value="Tetrapack">Tetrapack (+1)</button>
   </form>
 </div>
+
+<!-- ===================== -->
+<!-- KATEGORIEN-LINK -->
+<!-- ===================== -->
+<div class="card">
+  <h2>Kategorien ansehen</h2>
+  <a class="link-button" href="{{ url_for('categories') }}">Zu den Kategorien</a>
+</div>
+
 {% endblock %}
