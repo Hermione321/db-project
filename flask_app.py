@@ -208,7 +208,7 @@ def points_page():
 @app.route("/categories", methods=["GET", "POST"])
 @login_required
 def categories():
-    return "<h1>Kategorien</h1>
+    return "<h1>Kategorien</h1>"
 
 # =========================
 if __name__ == "__main__":
