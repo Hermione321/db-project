@@ -149,6 +149,17 @@
           {% endif %}
         {% endfor %}
       </ul>
+  
+      {% if alternative %}
+    <p>
+      🌱 Umweltfreundlichere Alternative:
+      <strong>{{ alternative[0] }}</strong>
+      (Materialanzahl: {{ alternative[1] }})
+    </p>
+  {% else %}
+    <p>✅ Dieses Produkt ist bereits sehr umweltfreundlich.</p>
+  {% endif %}
+  
     {% else %}
       <p>Keine Materialinformationen verfügbar.</p>
     {% endif %}
