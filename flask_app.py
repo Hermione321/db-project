@@ -205,20 +205,6 @@ def points_page():
 
     return render_template("points.html", points=points)
 
-@app.route("/points", methods=["GET", "POST"])
-def points_page():
-    global points
-
-    if request.method == "POST":
-        waste = request.form.get("waste", "").lower()
-        if waste in POINTS_PER_WASTE:
-            points += POINTS_PER_WASTE[waste]
-        return redirect(url_for("points_page"))
-
-    return render_template("points_page.html", points=points)
-
-
-
 # =========================
 if __name__ == "__main__":
     app.run()
