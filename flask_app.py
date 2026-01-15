@@ -205,6 +205,7 @@ def points_page():
 
     return render_template("points.html", points=points)
 
+
 @app.route("/categories", methods=["GET", "POST"])
 @login_required
 def categories():
