@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>♻️ Kategorien & Umweltinfos</h1>
+
+{% for name, data in categories.items() %}
+<div class="card">
+
+  <h3>{{ name }}</h3>
+
+  <p>🌍 {{ data.description | default('Keine Beschreibung verfügbar') }}</p>
+
+  <p>💨 <b>CO₂:</b> {{ data.co2 | default('Unbekannt') }}</p>
+
+  <p>⭐ <b>Punkte:</b> {{ data.points | default(0) }}</p>
+
+  <p>♻️ <b>Tipp:</b> {{ data.tip | default('Kein Tipp verfügbar') }}</p>
+
+  <p>
+    🌱 <b>Umwelt-Ranking:</b>
+    {% if data.score is defined and data.score is integer %}
+      {% for i in range(data.score) %}
+        ⭐
+      {% endfor %}
+    {% else %}
+      Kein Ranking verfügbar
+    {% endif %}
+  </p>
+
+  <ul>
+    {% if data.materials is defined and data.materials is iterable %}
+      {% for material in data.materials %}
+        {% if material.present is defined %}
+          {% if material.present %}
+            <li>✅ {{ material.name | default('Unbekannt') }}</li>
+          {% else %}
+            <li>❌ {{ material.name | default('Unbekannt') }}</li>
+          {% endif %}
+        {% else %}
+          <li>❓ {{ material.name | default('Unbekannt') }}</li>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <li>Keine Materialien verfügbar</li>
+    {% endif %}
+  </ul>
+
+</div>
+{% endfor %}
+{% endblock %}
