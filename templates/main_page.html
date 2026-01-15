@@ -168,4 +168,57 @@
   <a class="link-button" href="{{ url_for('points_page') }}">Zu den Pluspunkten</a>
 </div>
 
+<!-- ===================== -->
+<!-- ENTSORGUNGSSTELLEN IN DER NÄHE -->
+<!-- ===================== -->
+<div class="card">
+  <h2>🗺️ Entsorgungsstellen in deiner Nähe</h2>
+  <button onclick="loadRecycling()">Standort verwenden</button>
+  <div id="map" style="height: 400px; margin-top: 15px; border-radius: 12px;"></div>
+</div>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+function loadRecycling() {
+  if (!navigator.geolocation) {
+    alert("Standort wird nicht unterstützt");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async position => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    const map = L.map("map").setView([lat, lon], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    L.marker([lat, lon])
+      .addTo(map)
+      .bindPopup("📍 Dein Standort")
+      .openPopup();
+
+    const response = await fetch(`/entsorgung?lat=${lat}&lon=${lon}`);
+    const data = await response.json();
+
+    data.elements.forEach(e => {
+      const elLat = e.lat || e.center.lat;
+      const elLon = e.lon || e.center.lon;
+
+      L.marker([elLat, elLon])
+        .addTo(map)
+        .bindPopup("♻️ Entsorgungsstelle");
+    });
+  });
+}
+</script>
+
+
 {% endblock %}
