@@ -1,56 +1,40 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>{% if mode == "register" %}Registrieren{% else %}Login{% endif %}</title>
+</head>
+<body>
 
-{% block content %}
-<div class="page-auth">
+<h2>{% if mode == "register" %}Registrieren{% else %}Login{% endif %}</h2>
 
-  <div class="auth-wrapper">
-    <div class="auth-card">
+{% if error %}
+  <p style="color:red">{{ error }}</p>
+{% endif %}
 
-      <h1 class="auth-title">{{ title }}</h1>
+<form method="post"
+      action="{% if mode == 'register' %}{{ url_for('register') }}{% else %}{{ url_for('login') }}{% endif %}">
+  
+  <label>
+    Benutzername<br>
+    <input name="username" required>
+  </label><br><br>
 
-      {% if error %}
-        <p class="error">{{ error }}</p>
-      {% endif %}
+  <label>
+    Passwort<br>
+    <input type="password" name="password" required>
+  </label><br><br>
 
-      <form action="{{ action }}" method="post">
-        <div class="form-group">
-          <label for="username">Benutzername</label>
-          <input
-            type="text"
-            class="form-control"
-            id="username"
-            name="username"
-            placeholder="Benutzername"
-            required
-          >
-        </div>
+  <button type="submit">
+    {% if mode == "register" %}Registrieren{% else %}Login{% endif %}
+  </button>
+</form>
 
-        <div class="form-group">
-          <label for="password">Passwort</label>
-          <input
-            type="password"
-            class="form-control"
-            id="password"
-            name="password"
-            placeholder="Passwort"
-            required
-          >
-        </div>
+{% if mode == "register" %}
+  <p><a href="{{ url_for('login') }}">Zum Login</a></p>
+{% else %}
+  <p><a href="{{ url_for('register') }}">Neu registrieren</a></p>
+{% endif %}
 
-        <button type="submit" class="btn-auth">
-          {{ button_label }}
-        </button>
-      </form>
-
-      {% if footer_text %}
-        <p class="auth-footer-text">
-          {{ footer_text }}
-          <a href="{{ footer_link_url }}">{{ footer_link_label }}</a>
-        </p>
-      {% endif %}
-
-    </div>
-  </div>
-
-</div>
-{% endblock %}
+</body>
+</html>
