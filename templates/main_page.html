@@ -152,6 +152,41 @@ def add_user_points(user_id, amount):
         "UPDATE users SET pluspoints = COALESCE(pluspoints, 0) + ? WHERE id = ?",
         (amount, user_id)
     )
+# -------------------------
+# Barcode / Material Logic
+# -------------------------
+
+def material_count(product_name):
+    return sum(
+        material["present"]
+        for material in CATEGORIES.get(product_name, [])
+    )
+
+
+def find_alternative(barcode):
+    if barcode not in BARCODES:
+        return None, None
+
+    product_name = BARCODES[barcode]
+    materials = CATEGORIES.get(product_name, [])
+    current_score = material_count(product_name)
+
+    alternatives = []
+    for product in CATEGORIES:
+        if product != product_name:
+            score = material_count(product)
+            if score < current_score:
+                alternatives.append((product, score))
+
+    best_alternative = min(alternatives, key=lambda x: x[1]) if alternatives else None
+
+    product_data = {
+        "name": product_name,
+        "materials": materials
+    }
+
+    return product_data, best_alternative
+
 
 
 # -------------------------
@@ -162,10 +197,17 @@ def add_user_points(user_id, amount):
 def main_page():
     user_id = session["user_id"]
     message = None
+    product = None
+    alternative = None
 
     if request.method == "POST":
-        waste = request.form.get("waste")
+        form_type = request.form.get("form_type")
 
+        if form_type == "barcode":
+            barcode = request.form.get("barcode")
+            product, alternative = find_alternative(barcode)
+
+        waste = request.form.get("waste")
         if waste in POINTS_PER_WASTE:
             amount = POINTS_PER_WASTE[waste]
             add_user_points(user_id, amount)
@@ -176,5 +218,8 @@ def main_page():
     return render_template(
         "main.html",
         points=points,
-        message=message
+        message=message,
+        product=product,
+        alternative=alternative,
+        entsorgungsstellen=ENTSORGUNGSSTELLEN
     )
