@@ -1,236 +1,136 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f8ff;
-    padding: 20px;
-  }
+<div class="page-main">
 
-  h1, h2, h3 {
-    color: #333;
-  }
+  <h1>♻️ TrashUp – Abfall-App</h1>
 
-  .card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  }
+  <!-- TODOS -->
+  <div class="card-soft">
+    <h2>Deine Todos</h2>
 
-  .card h2 {
-    margin-top: 0;
-  }
+    <form method="POST">
+      <input type="hidden" name="form_type" value="todo">
+      <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
+      <input type="datetime-local" name="due_at" required>
+      <button type="submit">Hinzufügen</button>
+    </form>
 
-  input, button {
-    padding: 8px;
-    margin-right: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-  }
-
-  button {
-    background-color: #89CFF0; /* Babyblau */
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background-color: #5bb0e3;
-  }
-
-  ul {
-    list-style: none;
-    padding-left: 0;
-  }
-
-  li {
-    margin-bottom: 5px;
-  }
-
-  .todo-item {
-    display: flex;
-    align-items: center;
-  }
-
-  /* Materialfarben */
-  .material-1 { color: #1e90ff; }  /* PET */
-  .material-2 { color: #f1c40f; }  /* Aluminium */
-  .material-3 { color: #27ae60; }  /* Glas */
-  .material-4 { color: #8e6e53; }  /* Papier */
-  .material-none { color: gray; }
-
-  /* Kategorien-Link */
-  .link-button {
-    display: inline-block;
-    padding: 10px 15px;
-    margin-top: 10px;
-    background-color: #89CFF0;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-weight: bold;
-  }
-
-  .link-button:hover {
-    background-color: #5bb0e3;
-  }
-</style>
-
-<h1>♻️ TrashUp – Abfall-App</h1>
-
-<!-- ===================== -->
-<!-- TODO-FORMULAR -->
-<!-- ===================== -->
-<div class="card">
-  <h2>Deine Todos</h2>
-  <form method="POST">
-    <input type="hidden" name="form_type" value="todo">
-    <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
-    <input type="datetime-local" name="due_at" required>
-    <button type="submit">Hinzufügen</button>
-  </form>
-
-  {% if todos %}
-    <ul>
-      {% for todo in todos %}
-        <li class="todo-item">
-          <form action="/complete" method="POST">
-            <input type="hidden" name="id" value="{{ todo.id }}">
-            <input type="checkbox" onchange="this.form.submit()">
-            {{ todo.content }} (Fällig: {{ todo.due.strftime('%d.%m.%Y %H:%M') }})
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Keine Todos vorhanden 🎉</p>
-  {% endif %}
-</div>
-
-<!-- ===================== -->
-<!-- BARCODE-SCANNER & MATERIALIEN -->
-<!-- ===================== -->
-<div class="card">
-  <h2>Produkt scannen</h2>
-  <form method="POST">
-    <input type="hidden" name="form_type" value="barcode">
-    <input type="text" name="barcode" placeholder="Barcode eingeben" required>
-    <button type="submit">Suchen</button>
-  </form>
-
-  {% if product %}
-    <h3>{{ product.name }}</h3>
-    {% if product.materials %}
+    {% if todos %}
       <ul>
-        {% for material in product.materials %}
-          {% if material.present %}
-            <li class="material-{{ loop.index }}">{{ material.name }} ✅</li>
-          {% else %}
-            <li class="material-none">{{ material.name }} ❌</li>
-          {% endif %}
+        {% for todo in todos %}
+          <li class="todo-item">
+            <form action="{{ url_for('complete') }}" method="POST" style="margin:0;">
+              <input type="hidden" name="id" value="{{ todo.id }}">
+              <input type="checkbox" onchange="this.form.submit()">
+              {{ todo.content }} (Fällig: {{ todo.due_text }})
+            </form>
+          </li>
         {% endfor %}
       </ul>
-
-      {% if alternative %}
-        <p>
-          🌱 Umweltfreundlichere Alternative:
-          <strong>{{ alternative[0] }}</strong>
-          (Materialanzahl: {{ alternative[1] }})
-        </p>
-      {% else %}
-        <p>✅ Dieses Produkt ist bereits sehr umweltfreundlich.</p>
-      {% endif %}
-
     {% else %}
-      <p>Keine Materialinformationen verfügbar.</p>
+      <p>Keine Todos vorhanden 🎉</p>
     {% endif %}
-  {% endif %}
+  </div>
+
+  <!-- BARCODE -->
+  <div class="card-soft">
+    <h2>Produkt scannen</h2>
+
+    <form method="POST">
+      <input type="hidden" name="form_type" value="barcode">
+      <input type="text" name="barcode" placeholder="Barcode eingeben" required>
+      <button type="submit">Suchen</button>
+    </form>
+
+    {% if product %}
+      <h3>{{ product.name }}</h3>
+
+      {% if product.materials %}
+        <ul>
+          {% for material in product.materials %}
+            {% if material.present %}
+              <li class="material {{ material.name | lower }}">
+                {{ material.name }} ✅
+              </li>
+            {% else %}
+              <li class="material unknown">
+                {{ material.name }} ❌
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+
+        {% if alternative %}
+          <p>
+            🌱 Umweltfreundlichere Alternative:
+            <strong>{{ alternative[0] }}</strong>
+            (Materialanzahl: {{ alternative[1] }})
+          </p>
+        {% else %}
+          <p>✅ Dieses Produkt ist bereits sehr umweltfreundlich.</p>
+        {% endif %}
+      {% else %}
+        <p>Keine Materialinfos verfügbar.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- LINKS -->
+  <div class="card-soft">
+    <h2>Kategorien ansehen</h2>
+    <a class="link-button" href="{{ url_for('categories_page') }}">Zu den Kategorien</a>
+  </div>
+
+  <div class="card-soft">
+    <h2>Deine Pluspunkte ansehen</h2>
+    <a class="link-button" href="{{ url_for('points_page') }}">Zu den Pluspunkten</a>
+  </div>
+
+  <!-- KARTE -->
+  <div class="card-soft">
+    <h2>🗺️ Entsorgungsstellen in deiner Nähe</h2>
+    <button type="button" onclick="loadRecycling()">Standort verwenden</button>
+    <div id="map" style="height: 400px; margin-top: 15px; border-radius: 12px;"></div>
+  </div>
+
+  <script>
+    function loadRecycling() {
+      if (!navigator.geolocation) {
+        alert("Standort wird nicht unterstützt");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        const map = L.map("map").setView([lat, lon], 13);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap"
+        }).addTo(map);
+
+        L.marker([lat, lon]).addTo(map).bindPopup("📍 Dein Standort").openPopup();
+
+        try {
+          const response = await fetch(`/entsorgung?lat=${lat}&lon=${lon}`);
+          const data = await response.json();
+          const elements = data.elements || [];
+
+          elements.forEach(e => {
+            const elLat = e.lat || (e.center && e.center.lat);
+            const elLon = e.lon || (e.center && e.center.lon);
+            if (elLat && elLon) {
+              L.marker([elLat, elLon]).addTo(map).bindPopup("♻️ Entsorgungsstelle");
+            }
+          });
+        } catch (err) {
+          console.log("Karte: Fehler", err);
+        }
+      });
+    }
+  </script>
+
 </div>
-
-<!-- ===================== -->
-<!-- KATEGORIEN-LINK -->
-<!-- ===================== -->
-<div class="card">
-  <h2>Kategorien ansehen</h2>
-  <a class="link-button" href="{{ url_for('categories_page') }}">Zu den Kategorien</a>
-</div>
-
-<!-- ===================== -->
-<!-- LINK ZUR POINTS-SEITE -->
-<!-- ===================== -->
-<div class="card">
-  <h2>Deine Pluspunkte ansehen</h2>
-  <a class="link-button" href="{{ url_for('points_page') }}">Zu den Pluspunkten</a>
-</div>
-
-<!-- ===================== -->
-<!-- ENTSORGUNGSSTELLEN IN DER NÄHE -->
-<!-- ===================== -->
-<div class="card">
-  <h2>🗺️ Entsorgungsstellen in deiner Nähe</h2>
-  <button onclick="loadRecycling()">Standort verwenden</button>
-  <div id="map" style="height: 400px; margin-top: 15px; border-radius: 12px;"></div>
-</div>
-
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet/dist/leaflet.css"
-/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-function loadRecycling() {
-  if (!navigator.geolocation) {
-    alert("Standort wird nicht unterstützt");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(async position => {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-
-    const map = L.map("map").setView([lat, lon], 13);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap"
-    }).addTo(map);
-
-    L.marker([lat, lon])
-      .addTo(map)
-      .bindPopup("📍 Dein Standort")
-      .openPopup();
-
-    const response = await fetch(`/entsorgung?lat=${lat}&lon=${lon}`);
-    const data = await response.json();
-
-    data.elements.forEach(e => {
-      const elLat = e.lat || e.center.lat;
-      const elLon = e.lon || e.center.lon;
-
-      L.marker([elLat, elLon])
-        .addTo(map)
-        .bindPopup("♻️ Entsorgungsstelle");
-    });
-  });
-}
-</script>
-
-{% if entsorgungsstellen %}
-<ul>
-  {% for stelle in entsorgungsstellen %}
-    <li>
-      <strong>{{ stelle.name }}</strong><br>
-      {{ stelle.adresse }}<br>
-      <em>{{ stelle.typ }}</em>
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
-
-
 {% endblock %}

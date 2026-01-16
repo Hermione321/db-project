@@ -288,3 +288,23 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+/* Materialfarben */
+.material-item.pet {
+  color: #1e90ff;
+}
+
+.material-item.aluminium {
+  color: #f1c40f;
+}
+
+.material-item.glas {
+  color: #27ae60;
+}
+
+.material-item.papier {
+  color: #8e6e53;
+}
+
+.material-item.unbekannt {
+  color: gray;
+}

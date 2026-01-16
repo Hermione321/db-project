@@ -1,67 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  .card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  }
-
-  button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: none;
-    background-color: #89CFF0;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  button:hover {
-    background-color: #5bb0e3;
-  }
-
-  .points {
-    font-size: 26px;
-    font-weight: bold;
-    color: #0077b6;
-  }
-
-  .waste-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-</style>
-
 <h1>🏆 Deine Pluspunkte</h1>
 
-<div class="card">
+<div class="card-soft">
 
   <h2>Aktueller Punktestand:</h2>
-  <p class="points">{{ points }} Punkte</p>
+  <p class="points-value">{{ points }} Punkte</p>
 
   <h3>Abfall auswählen:</h3>
 
   <div class="waste-buttons">
 
     <form method="POST">
-      <button name="waste" value="pet">PET (+5)</button>
+      <button class="btn-babyblue" name="waste" value="pet">PET (+5)</button>
     </form>
 
     <form method="POST">
-      <button name="waste" value="glas">Glas (+3)</button>
+      <button class="btn-babyblue" name="waste" value="glas">Glas (+3)</button>
     </form>
 
     <form method="POST">
-      <button name="waste" value="aluminium">Aluminium (+2)</button>
+      <button class="btn-babyblue" name="waste" value="aluminium">Aluminium (+2)</button>
     </form>
 
     <form method="POST">
-      <button name="waste" value="papier">Papier (+1)</button>
+      <button class="btn-babyblue" name="waste" value="papier">Papier (+1)</button>
     </form>
 
   </div>

@@ -1,156 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  body {
-    background: #f0f8ff; /* zartes Babyblau im Hintergrund */
-    font-family: Arial, sans-serif;
-  }
+<div class="page-auth">
 
-  .auth-wrapper {
-    max-width: 400px;
-    margin: 60px auto;
-    padding: 10px;
-  }
+  <div class="auth-wrapper">
+    <div class="auth-card">
 
-  .auth-card {
-    background: #ffffff;
-    padding: 35px 30px 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    border: 2px solid #a0cfff; /* Babyblauer Rand */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
+      <h1 class="auth-title">{{ title }}</h1>
 
-  .auth-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-  }
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
 
-  .auth-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: #1e90ff; /* schönes Blau für Überschrift */
-    text-align: center;
-  }
+      <form action="{{ action }}" method="post">
+        <div class="form-group">
+          <label for="username">Benutzername</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            name="username"
+            placeholder="Benutzername"
+            required
+          >
+        </div>
 
-  .error {
-    color: #ff4d4f;
-    background: #ffe6e6;
-    padding: 8px 12px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    text-align: center;
-  }
+        <div class="form-group">
+          <label for="password">Passwort</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            placeholder="Passwort"
+            required
+          >
+        </div>
 
-  .form-group {
-    margin-bottom: 18px;
-  }
+        <button type="submit" class="btn-auth">
+          {{ button_label }}
+        </button>
+      </form>
 
-  .form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-  }
+      {% if footer_text %}
+        <p class="auth-footer-text">
+          {{ footer_text }}
+          <a href="{{ footer_link_url }}">{{ footer_link_label }}</a>
+        </p>
+      {% endif %}
 
-  .form-control:focus {
-    border-color: #1e90ff;
-    outline: none;
-    box-shadow: 0 0 5px rgba(30,144,255,0.3);
-  }
-
-  .btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background: #1e90ff; /* kräftiges Babyblau für Button */
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-  }
-
-  .btn:hover {
-    background: #0f78d1;
-    transform: translateY(-1px);
-  }
-
-  .auth-footer-text {
-    font-size: 13px;
-    margin-top: 20px;
-    text-align: center;
-    color: #555;
-  }
-
-  .auth-footer-text a {
-    font-weight: 600;
-    color: #1e90ff;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .auth-footer-text a:hover {
-    color: #0f78d1;
-    text-decoration: underline;
-  }
-</style>
-
-<div class="auth-wrapper">
-  <div class="auth-card">
-
-    <h1 class="auth-title">{{ title }}</h1>
-
-    <!-- Fehler anzeigen -->
-    {% if error %}
-      <p class="error">{{ error }}</p>
-    {% endif %}
-
-    <!-- Formular für Login oder Registrierung -->
-    <form action="{{ action }}" method="post">
-      <div class="form-group">
-        <label for="username">Benutzername</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          placeholder="Benutzername"
-          required
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="password">Passwort</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          placeholder="Passwort"
-          required
-        >
-      </div>
-
-      <button type="submit" class="btn">
-        {{ button_label }}
-      </button>
-    </form>
-
-    <!-- Footer-Link (z.B. Registrierung oder Login) -->
-    {% if footer_text %}
-      <p class="auth-footer-text">
-        {{ footer_text }}
-        <a href="{{ footer_link_url }}">{{ footer_link_label }}</a>
-      </p>
-    {% endif %}
-
+    </div>
   </div>
+
 </div>
 {% endblock %}
