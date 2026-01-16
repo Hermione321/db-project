@@ -1,71 +1,89 @@
-import pandas as pd
-import requests
-import folium
+from flask import Flask, render_template
 
-# ——————————————————————————————
-# 1) Lade aktuelle Position über IP
-# ——————————————————————————————
+app = Flask(__name__)
 
-def get_current_location():
-    try:
-        # IP-Geodatendienst (frei)
-        res = requests.get("https://ipinfo.io/json")
-        data = res.json()
-        
-        if "loc" in data:
-            lat, lon = map(float, data["loc"].split(","))
-            return lat, lon
-    except Exception as e:
-        print("Fehler beim Standort: ", e)
-    return None, None
+# Beispiel-Daten (kann später durch echte API ersetzt werden)
+entsorgungsstellen = [
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Merkurstrasse, 8032 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Recyclinghof Werdhölzli",
+        "adresse": "Bändlistrasse 94, 8064 Zürich",
+        "typ": "Sonderabfälle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Am Schanzengraben 25, 8002 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Aegertenstrasse 16, 8003 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Seebahnstrasse 89, 8003 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Konradstrasse 79, 8005 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Neugasse 116, 8005 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Tellstrasse 38, 8004 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "zsge Recycling Werkstatt und Sammelstelle für Elektroschrott",
+        "adresse": "Kanonengasse 20, 8004 Zürich",
+        "typ": "Recycling Werkstatt und Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Hardstrasse 9, 8004 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Zimmerlistrasse 2, 8004 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Spross Recyclingwerk Zürich",
+        "adresse": "Hohlstrasse 330, 8004 Zürich",
+        "typ": "Recyclingwerk"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Heinrichstrasse 191, 8005 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "8006 Zürich",
+        "typ": "Sammelstelle"
+    },
+    {
+        "name": "Wertstoff-Sammelstelle",
+        "adresse": "Klopstockstrasse 23, 8002 Zürich",
+        "typ": "Sammelstelle"
+    }
+]
 
-# ——————————————————————————————
-# 2) Lade Entsorgungsstellen
-# ——————————————————————————————
-
-def load_disposal_sites(csv_path):
-    df = pd.read_csv(csv_path)
-    # Erwartete Spalten in CSV: latitude, longitude, name
-    return df
-
-# ——————————————————————————————
-# 3) Karte erstellen
-# ——————————————————————————————
-
-def create_map(disposal_csv):
-    # aktueller Standort
-    my_lat, my_lon = get_current_location()
-    
-    # Lade Entsorgungsstellen
-    df_sites = load_disposal_sites(disposal_csv)
-
-    # Karte zentriert in Zürich
-    start_coords = (47.3769, 8.5417)
-    fmap = folium.Map(location=start_coords, zoom_start=12)
-
-    # Marker: eigene Position
-    if my_lat and my_lon:
-        folium.Marker(
-            location=(my_lat, my_lon),
-            popup="🔵 Du bist hier",
-            icon=folium.Icon(color="blue", icon="user")
-        ).add_to(fmap)
-
-    # Marker: Entsorgungsstellen
-    for _, row in df_sites.iterrows():
-        folium.Marker(
-            location=(row["latitude"], row["longitude"]),
-            popup=row.get("name", "Entsorgungsstelle"),
-            icon=folium.Icon(color="green", icon="recycle")
-        ).add_to(fmap)
-
-    # Speichere Map
-    fmap.save("entsorgung_karte.html")
-    print("Karte erstellt: entsorgung_karte.html ✔️")
-
-# ——————————————————————————————
-# 4) Ausführen
-# ——————————————————————————————
+@app.route("/")
+def index():
+    return render_template("index.html", stellen=entsorgungsstellen)
 
 if __name__ == "__main__":
-    create_map("entsorgungsstellen_zurich.csv")
+    app.run(debug=True)
