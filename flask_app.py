@@ -214,10 +214,6 @@ def categories():
         categories=CATEGORIES
     )
 
-from flask import Flask, render_template, request, jsonify
-
-app = Flask(__name__)
-
 # =========================
 # ENTSORGUNGSSTELLEN (DATEN)
 # =========================
@@ -242,19 +238,6 @@ entsorgungsstellen = [
     {"name": "Wertstoff-Sammelstelle", "adresse": "8006 Zürich", "typ": "Sammelstelle"},
     {"name": "Wertstoff-Sammelstelle", "adresse": "Klopstockstrasse 23, 8002 Zürich", "typ": "Sammelstelle"}
 ]
-
-# =========================
-# HAUPTROUTE (NUR EINMAL!)
-# =========================
-@app.route("/", methods=["GET", "POST"])
-def index():
-    return render_template(
-        "index.html",
-        entsorgungsstellen=entsorgungsstellen,
-        todos=[],        # kommt aus deiner bestehenden Logik
-        product=None,
-        alternative=None
-    )
 
 # =========================
 # API FÜR DIE KARTE
