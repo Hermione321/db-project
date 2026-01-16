@@ -40,7 +40,7 @@ CATEGORIES = {
             {"name": "Papier", "color": "#8e6e53", "present": True}
         ]
     },
-    "Tetrapack": {
+    "Papier": {
         "description": "Besteht aus mehreren Schichten – schwer zu recyceln.",
         "co2": "ca. 90g CO₂",
         "points": 1,
@@ -59,5 +59,5 @@ BARCODES = {
     "7612345678901": "PET-Flasche",
     "4001234567890": "Aluminiumdose",
     "5009876543210": "Glasflasche",
-    "1234567890123": "Tetrapack"
+    "1234567890123": "Papier"
 }

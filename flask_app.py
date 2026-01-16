@@ -96,13 +96,13 @@ def webhook():
 def login():
     error = None
     if request.method == "POST":
-        user = authenticate(
-            request.form["username"],
-            request.form["password"]
-        )
-        if user:
-            login_user(user)
-            return redirect(url_for("index"))
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if username and password:
+            user = authenticate(username, password)
+            if user:
+                login_user(user)
+                return redirect(url_for("index"))
         error = "Benutzername oder Passwort ist falsch."
 
     return render_template(
@@ -121,12 +121,13 @@ def login():
 def register():
     error = None
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        ok = register_user(username, password)
-        if ok:
-            return redirect(url_for("login"))
-        error = "Benutzername existiert bereits."
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if username and password:
+            ok = register_user(username, password)
+            if ok:
+                return redirect(url_for("login"))
+        error = "Benutzername existiert bereits oder Eingaben ungültig."
 
     return render_template(
         "auth.html",

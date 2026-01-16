@@ -38,7 +38,7 @@ Beispiel:
 ---------
 Eingabe: "1234567890123"
 Ausgabe:
-📦 Produkt erkannt: Tetrapack
+📦 Produkt erkannt: Papier
 ♻️ Materialanzahl: 3
 🌱 Umweltfreundlichere Alternative: PET-Flasche (Materialanzahl: 1)
 
