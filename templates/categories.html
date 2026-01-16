@@ -126,7 +126,7 @@
   {% if data.materials is defined and data.materials | length > 0 %}
     <ul class="material-list">
       {% for material in data.materials %}
-        {% set status = '✅ recyclebar' if material.present else '❌ nicht recyclebar' %}
+        {% set status = '✅' if material.present else '❌' %}
         <li class="material-item" data-color="{{ material.color | default('gray') }}">
           {{ material.name[:3] | upper }}
           <span class="tooltip">{{ status }}</span>
