@@ -42,13 +42,12 @@
     font-size: 12px;
     cursor: pointer;
     text-align: center;
-    background-color: gray;
   }
 
   /* Tooltip */
   .material-item span.tooltip {
     visibility: hidden;
-    width: 120px;
+    width: 130px;
     background-color: #333;
     color: #fff;
     text-align: center;
@@ -84,17 +83,12 @@
     background-color: #5bb0e3;
   }
 
-  /* Dynamische Hintergrundfarben für Materialien */
-  .material-item[data-bg-color="red"] { background-color: red; }
-  .material-item[data-bg-color="blue"] { background-color: blue; }
-  .material-item[data-bg-color="green"] { background-color: green; }
-  .material-item[data-bg-color="yellow"] { background-color: yellow; }
-  .material-item[data-bg-color="orange"] { background-color: orange; }
-  .material-item[data-bg-color="purple"] { background-color: purple; }
-  .material-item[data-bg-color="brown"] { background-color: brown; }
-  .material-item[data-bg-color="gray"] { background-color: gray; }
-  .material-item[data-bg-color="black"] { background-color: black; }
-
+  /* Dynamische Hintergrundfarben */
+  .material-item[data-color="#1e90ff"] { background-color: #1e90ff; }
+  .material-item[data-color="#f1c40f"] { background-color: #f1c40f; }
+  .material-item[data-color="#27ae60"] { background-color: #27ae60; }
+  .material-item[data-color="#8e6e53"] { background-color: #8e6e53; }
+  .material-item[data-color="gray"] { background-color: gray; }
 </style>
 
 {% for name, data in categories.items() %}
@@ -129,12 +123,11 @@
 
   <!-- Materialien -->
   <h4>Materialien</h4>
-  {% if data.materials is defined and data.materials is iterable and data.materials | length > 0 %}
+  {% if data.materials is defined and data.materials | length > 0 %}
     <ul class="material-list">
       {% for material in data.materials %}
-        {% set bg_color = material.color | default('gray') %}
         {% set status = '✅ recyclebar' if material.present else '❌ nicht recyclebar' %}
-        <li class="material-item" data-bg-color="{{ bg_color }}">
+        <li class="material-item" data-color="{{ material.color | default('gray') }}">
           {{ material.name[:3] | upper }}
           <span class="tooltip">{{ status }}</span>
         </li>

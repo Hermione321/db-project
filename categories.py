@@ -1,3 +1,5 @@
+# categories.py
+
 CATEGORIES = {
     "PET-Flasche": {
         "description": "PET besteht aus Plastik. Es braucht sehr lange zum Zersetzen und kann Mikroplastik in die Umwelt abgeben.",
@@ -12,7 +14,6 @@ CATEGORIES = {
             {"name": "Papier", "color": "#8e6e53", "present": False}
         ]
     },
-
     "Glasflasche": {
         "description": "Glas ist sehr gut recycelbar, aber schwer beim Transport.",
         "co2": "ca. 150g CO₂",
@@ -26,7 +27,6 @@ CATEGORIES = {
             {"name": "Papier", "color": "#8e6e53", "present": True}
         ]
     },
-
     "Aluminiumdose": {
         "description": "Aluminiumherstellung ist sehr energieintensiv.",
         "co2": "ca. 170g CO₂",
@@ -40,7 +40,6 @@ CATEGORIES = {
             {"name": "Papier", "color": "#8e6e53", "present": True}
         ]
     },
-
     "Tetrapack": {
         "description": "Besteht aus mehreren Schichten – schwer zu recyceln.",
         "co2": "ca. 90g CO₂",
