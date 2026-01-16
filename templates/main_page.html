@@ -220,5 +220,17 @@ function loadRecycling() {
 }
 </script>
 
+{% if entsorgungsstellen %}
+<ul>
+  {% for stelle in entsorgungsstellen %}
+    <li>
+      <strong>{{ stelle.name }}</strong><br>
+      {{ stelle.adresse }}<br>
+      <em>{{ stelle.typ }}</em>
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
 
 {% endblock %}
