@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, jsonify
 from dotenv import load_dotenv
 import os
 import git
@@ -208,11 +208,12 @@ def points_page():
 
 @app.route("/categories", methods=["GET", "POST"])
 @login_required
-def categories():
+def categories_page():  # <- Name geändert
     return render_template(
         "categories.html",
         categories=CATEGORIES
     )
+
 
 # =========================
 # ENTSORGUNGSSTELLEN (DATEN)
