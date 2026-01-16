@@ -3,6 +3,100 @@
 {% block content %}
 <h1>♻️ Kategorien & Umweltinfos</h1>
 
+<style>
+  .card {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  .card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .stars {
+    font-size: 18px;
+  }
+
+  .material-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .material-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    background-color: gray;
+  }
+
+  /* Tooltip */
+  .material-item span.tooltip {
+    visibility: hidden;
+    width: 120px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 10;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .material-item:hover span.tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .link-button {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-top: 20px;
+    background-color: #89CFF0;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+  }
+
+  .link-button:hover {
+    background-color: #5bb0e3;
+  }
+
+  /* Dynamische Hintergrundfarben für Materialien */
+  .material-item[data-bg-color="red"] { background-color: red; }
+  .material-item[data-bg-color="blue"] { background-color: blue; }
+  .material-item[data-bg-color="green"] { background-color: green; }
+  .material-item[data-bg-color="yellow"] { background-color: yellow; }
+  .material-item[data-bg-color="orange"] { background-color: orange; }
+  .material-item[data-bg-color="purple"] { background-color: purple; }
+  .material-item[data-bg-color="brown"] { background-color: brown; }
+  .material-item[data-bg-color="gray"] { background-color: gray; }
+  .material-item[data-bg-color="black"] { background-color: black; }
+
+</style>
+
 {% for name, data in categories.items() %}
 <div class="card">
 
@@ -10,41 +104,50 @@
 
   <p>🌍 {{ data.description | default('Keine Beschreibung verfügbar') }}</p>
 
-  <p>💨 <b>CO₂:</b> {{ data.co2 | default('Unbekannt') }}</p>
+  <p>💨 <b>CO₂:</b> {{ data.co2 | default('Noch keine Daten vorhanden') }}</p>
 
   <p>⭐ <b>Punkte:</b> {{ data.points | default(0) }}</p>
 
   <p>♻️ <b>Tipp:</b> {{ data.tip | default('Kein Tipp verfügbar') }}</p>
 
+  <!-- Sterne-Ranking -->
   <p>
     🌱 <b>Umwelt-Ranking:</b>
     {% if data.score is defined and data.score is integer %}
-      {% for i in range(data.score) %}
-        ⭐
-      {% endfor %}
+        <span class="stars">
+        {% for i in range(data.score) %}
+            <span style="color: gold;">⭐</span>
+        {% endfor %}
+        {% for i in range(5 - data.score) %}
+            <span style="color: lightgray;">⭐</span>
+        {% endfor %}
+        </span>
     {% else %}
-      Kein Ranking verfügbar
+        Kein Ranking verfügbar
     {% endif %}
   </p>
 
-  <ul>
-    {% if data.materials is defined and data.materials is iterable %}
+  <!-- Materialien -->
+  <h4>Materialien</h4>
+  {% if data.materials is defined and data.materials is iterable and data.materials | length > 0 %}
+    <ul class="material-list">
       {% for material in data.materials %}
-        {% if material.present is defined %}
-          {% if material.present %}
-            <li>✅ {{ material.name | default('Unbekannt') }}</li>
-          {% else %}
-            <li>❌ {{ material.name | default('Unbekannt') }}</li>
-          {% endif %}
-        {% else %}
-          <li>❓ {{ material.name | default('Unbekannt') }}</li>
-        {% endif %}
+        {% set bg_color = material.color | default('gray') %}
+        {% set status = '✅ recyclebar' if material.present else '❌ nicht recyclebar' %}
+        <li class="material-item" data-bg-color="{{ bg_color }}">
+          {{ material.name[:3] | upper }}
+          <span class="tooltip">{{ status }}</span>
+        </li>
       {% endfor %}
-    {% else %}
-      <li>Keine Materialien verfügbar</li>
-    {% endif %}
-  </ul>
+    </ul>
+  {% else %}
+    <p>Keine Materialien verfügbar</p>
+  {% endif %}
 
 </div>
 {% endfor %}
+
+<!-- Zurück-Button -->
+<a href="{{ url_for('index') }}" class="link-button">⬅ Zurück</a>
+
 {% endblock %}
