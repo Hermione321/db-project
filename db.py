@@ -140,22 +140,38 @@ def db_read(sql, params=None, single=False):
 
 
 def db_upsert(user_id, points):
-    """Upsert für user_points (SQLite kompatibel)"""
-    conn = get_conn()
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
     try:
         cur = conn.cursor()
-        if isinstance(conn, sqlite3.Connection):
-            # SQLite: INSERT OR REPLACE
-            sql = "INSERT OR REPLACE INTO user_points (user_id, points) VALUES (?, ?)"
+
+        cur.execute("SELECT user_id FROM user_points WHERE user_id = ?", (user_id,))
+        existing = cur.fetchone()
+
+        if existing:
+            cur.execute(
+                "UPDATE user_points SET points = ? WHERE user_id = ?",
+                (points, user_id),
+            )
         else:
-            # MySQL: REPLACE
-            sql = "REPLACE INTO user_points (user_id, points) VALUES (%s, %s)"
-        cur.execute(sql, (user_id, points))
+            cur.execute(
+                "INSERT INTO user_points (user_id, points) VALUES (?, ?)",
+                (user_id, points),
+            )
+
         conn.commit()
-        print("db_upsert OK:", user_id, points)  # DEBUG
     finally:
-        try:
-            cur.close()
-        except:
-            pass
         conn.close()
+
+
+def ensure_pluspoints_column():
+    conn = sqlite3.connect("app.db")
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN pluspoints INTEGER DEFAULT 0")
+        conn.commit()
+    except Exception:
+        # Spalte existiert bereits -> ignorieren
+        pass
+    finally:
+        conn.close()
+

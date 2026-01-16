@@ -1,33 +1,237 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>🏆 Deine Pluspunkte</h1>
 
-<div class="card-soft">
+<div class="pp-wrap">
+  <div class="pp-card">
+    <div class="pp-header">
+      <div>
+        <h1 class="pp-title">Pluspunkte</h1>
+        <p class="pp-subtitle">Klicke auf dein Recycling – Punkte werden direkt gutgeschrieben.</p>
+      </div>
 
-  <h2>Aktueller Punktestand:</h2>
-  <p class="points-value">{{ points }} Punkte</p>
+      <div class="pp-score">
+        <div class="pp-score-label">Aktuell</div>
+        <div class="pp-score-value" id="pointsValue">{{ points }}</div>
+      </div>
+    </div>
 
-  <h3>Abfall auswählen:</h3>
+    {% if message %}
+      <div class="pp-toast">{{ message }}</div>
+    {% endif %}
 
-  <div class="waste-buttons">
+    <div class="pp-grid">
 
-    <form method="POST">
-      <button class="btn-babyblue" name="waste" value="pet">PET (+5)</button>
-    </form>
+      <form method="POST" action="{{ url_for('pluspunkte') }}">
+        <input type="hidden" name="waste" value="glas">
+        <button class="pp-btn" type="submit" data-add="3">
+          <span class="pp-emoji">🫙</span>
+          <span class="pp-name">Glas</span>
+          <span class="pp-pill">+3</span>
+        </button>
+      </form>
 
-    <form method="POST">
-      <button class="btn-babyblue" name="waste" value="glas">Glas (+3)</button>
-    </form>
+      <form method="POST" action="{{ url_for('pluspunkte') }}">
+        <input type="hidden" name="waste" value="aluminium">
+        <button class="pp-btn" type="submit" data-add="2">
+          <span class="pp-emoji">🥫</span>
+          <span class="pp-name">Aluminium</span>
+          <span class="pp-pill">+2</span>
+        </button>
+      </form>
 
-    <form method="POST">
-      <button class="btn-babyblue" name="waste" value="aluminium">Aluminium (+2)</button>
-    </form>
+      <form method="POST" action="{{ url_for('pluspunkte') }}">
+        <input type="hidden" name="waste" value="pet">
+        <button class="pp-btn" type="submit" data-add="2">
+          <span class="pp-emoji">🧴</span>
+          <span class="pp-name">PET</span>
+          <span class="pp-pill">+2</span>
+        </button>
+      </form>
 
-    <form method="POST">
-      <button class="btn-babyblue" name="waste" value="papier">Papier (+1)</button>
-    </form>
+      <form method="POST" action="{{ url_for('pluspunkte') }}">
+        <input type="hidden" name="waste" value="papier">
+        <button class="pp-btn" type="submit" data-add="1">
+          <span class="pp-emoji">📄</span>
+          <span class="pp-name">Papier</span>
+          <span class="pp-pill">+1</span>
+        </button>
+      </form>
 
+    </div>
+
+    <div class="pp-footer">
+      <div class="pp-hint">
+        <span class="pp-dot"></span>
+        Tipp: Mehr Recycling = mehr Punkte. Die Punkte bleiben gespeichert.
+      </div>
+      <a class="pp-back" href="{{ url_for('main_page') }}">← zurück</a>
+    </div>
   </div>
 </div>
+
+<style>
+  .pp-wrap{
+    min-height: calc(100vh - 120px);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding: 28px 14px;
+  }
+
+  .pp-card{
+    width: min(860px, 100%);
+    border-radius: 18px;
+    padding: 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    backdrop-filter: blur(10px);
+  }
+
+  .pp-header{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom: 14px;
+  }
+
+  .pp-title{
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 0.2px;
+  }
+
+  .pp-subtitle{
+    margin: 6px 0 0 0;
+    opacity: 0.75;
+    font-size: 14px;
+  }
+
+  .pp-score{
+    min-width: 140px;
+    text-align:right;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .pp-score-label{
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  .pp-score-value{
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .pp-toast{
+    margin: 10px 0 12px 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-size: 14px;
+  }
+
+  .pp-grid{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 520px){
+    .pp-grid{ grid-template-columns: 1fr; }
+    .pp-header{ flex-direction: column; }
+    .pp-score{ text-align:left; width: fit-content; }
+  }
+
+  .pp-btn{
+    width: 100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    border-radius: 16px;
+    padding: 14px 14px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+    color: inherit;
+  }
+
+  .pp-btn:hover{
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.09);
+    box-shadow: 0 10px 18px rgba(0,0,0,0.22);
+  }
+
+  .pp-btn:active{
+    transform: translateY(0px) scale(0.99);
+  }
+
+  .pp-emoji{ font-size: 22px; }
+  .pp-name{ font-size: 16px; font-weight: 700; }
+  .pp-pill{
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .pp-footer{
+    margin-top: 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pp-hint{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    opacity: 0.78;
+    font-size: 13px;
+  }
+
+  .pp-dot{
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.6);
+    display:inline-block;
+  }
+
+  .pp-back{
+    text-decoration:none;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+
+  .pp-back:hover{ opacity: 1; }
+</style>
+
+<script>
+  // kleine "pop" Animation nach POST-Reload, wenn message gesetzt ist
+  (function(){
+    const toast = document.querySelector(".pp-toast");
+    const score = document.getElementById("pointsValue");
+    if (!toast || !score) return;
+
+    score.animate(
+      [{ transform: "scale(1)" }, { transform: "scale(1.12)" }, { transform: "scale(1)" }],
+      { duration: 420, easing: "ease-out" }
+    );
+  })();
+</script>
+
 {% endblock %}

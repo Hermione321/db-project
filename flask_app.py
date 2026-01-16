@@ -31,34 +31,29 @@ login_manager.login_view = "login"
 
 
 # =========================
-# PUNKTE-SYSTEM
+# PUNKTE-SYSTEM (stabil, ohne db_upsert)
 # =========================
 POINTS_PER_WASTE = {
-    "pet": 5,
+    "pet": 2,
     "glas": 3,
     "aluminium": 2,
-    "papier": 1
+    "papier": 1,
 }
 
-
 def get_user_points(user_id):
-    """Hole Punkte fuer einen Benutzer aus der DB"""
-    result = db_read(
-        "SELECT points FROM user_points WHERE user_id=%s",
+    row = db_read(
+        "SELECT COALESCE(pluspoints, 0) AS pluspoints FROM users WHERE id = ?",
         (user_id,),
-        single=True
+        one=True
     )
-    if result is None:
-        return 0
-    return result.get("points", 0)
-
+    return row["pluspoints"] if row else 0
 
 def add_user_points(user_id, amount):
-    """Addiere Punkte zu einem Benutzer"""
-    from db import db_upsert
-    current = get_user_points(user_id)
-    new_points = current + amount
-    db_upsert(user_id, new_points)
+    db_write(
+        "UPDATE users SET pluspoints = COALESCE(pluspoints, 0) + ? WHERE id = ?",
+        (amount, user_id)
+    )
+
 
 
 # =========================
@@ -257,17 +252,25 @@ def index():
 # =========================
 # POINTS PAGE
 # =========================
+# =========================
+# POINTS PAGE
+# =========================
 @app.route("/points", methods=["GET", "POST"])
 @login_required
 def points_page():
     if request.method == "POST":
-        waste = request.form.get("waste", "").lower()
+        waste = request.form.get("waste", "").strip().lower()
         if waste in POINTS_PER_WASTE:
             add_user_points(current_user.id, POINTS_PER_WASTE[waste])
         return redirect(url_for("points_page"))
 
     user_points = get_user_points(current_user.id)
-    return render_template("pluspoint_page.html", points=user_points, points_per_waste=POINTS_PER_WASTE)
+    return render_template(
+        "pluspoint_page.html",
+        points=user_points,
+        points_per_waste=POINTS_PER_WASTE
+    )
+
 
 
 # =========================
