@@ -1,37 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+# Diese Datei ist deprecated
+# Die Funktionalität wurde in flask_app.py integriert
+# Die Punkte-Seite ist jetzt unter /points erreichbar
+# und speichert Punkte benutzer-spezifisch in der Datenbank
 
-app = Flask(__name__)
-
-# =========================
-# Punktesystem
-# =========================
-points = 0
-
-POINTS_PER_WASTE = {
-    "pet": 5,
-    "glas": 3,
-    "aluminium": 2,
-    "tetrapak": 1
-}
-
-# =========================
-# Hauptseite
-# =========================
-@app.route("/", methods=["GET", "POST"])
-def home():
-    global points
-
-    if request.method == "POST":
-        waste = request.form.get("waste", "").lower()
-        if waste in POINTS_PER_WASTE:
-            points += POINTS_PER_WASTE[waste]
-        return redirect(url_for("home"))
-
-    return render_template("home_page.html", points=points)
-
-
-# =========================
-# App starten
-# =========================
+# Nur für direktes Ausführen - startet die Hauptapp
 if __name__ == "__main__":
+    from flask_app import app
     app.run(debug=True)

@@ -89,6 +89,13 @@ def register_user(username, password):
             "INSERT INTO users (username, password) VALUES (%s, %s)",
             (username, hashed)
         )
+        # Initialisiere Punkte für neuen Benutzer
+        user = User.get_by_username(username)
+        if user:
+            db_write(
+                "INSERT INTO user_points (user_id, points) VALUES (%s, %s)",
+                (user.id, 0)
+            )
         logger.info("register_user(): User '%s' erfolgreich angelegt", username)
     except Exception:
         logger.exception("Fehler beim Anlegen von User '%s'", username)

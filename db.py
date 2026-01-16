@@ -1,8 +1,13 @@
 from dotenv import load_dotenv
 import os
-from mysql.connector import pooling
 import sqlite3
 from pathlib import Path
+
+# MySQL ist optional - Fallback zu SQLite
+try:
+    from mysql.connector import pooling
+except ImportError:
+    pooling = None
 
 # Load .env variables
 load_dotenv()
@@ -23,6 +28,10 @@ def _create_pool_if_needed():
 
     # Only attempt to create a pool when all config values are present
     if not all(DB_CONFIG.values()):
+        return
+
+    # MySQL nur nutzen wenn Paket verfügbar ist
+    if pooling is None:
         return
 
     pool = pooling.MySQLConnectionPool(pool_name="pool", pool_size=5, **DB_CONFIG)
@@ -63,23 +72,62 @@ def _ensure_sqlite_schema(conn):
         );
         """
     )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_points (
+            user_id INTEGER PRIMARY KEY,
+            points INTEGER DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+        """
+    )
     conn.commit()
 
 # DB-Helper
+def db_write(sql, params=None):
+    """Schreibe/Update in die Datenbank"""
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
+        if isinstance(conn, sqlite3.Connection):
+            # Konvertiere %s zu ? für SQLite
+            sql = sql.replace('%s', '?')
+        cur.execute(sql, params or ())
+        conn.commit()
+        print("db_write OK:", sql, params)  # DEBUG
+    finally:
+        try:
+            cur.close()
+        except:
+            pass
+        conn.close()
+
 def db_read(sql, params=None, single=False):
     conn = get_conn()
     try:
-        cur = conn.cursor(dictionary=True)
+        # SQLite und MySQL kompatibel
+        if isinstance(conn, sqlite3.Connection):
+            cur = conn.cursor()
+            # Konvertiere %s zu ? für SQLite
+            sql = sql.replace('%s', '?')
+        else:
+            cur = conn.cursor(dictionary=True)
         cur.execute(sql, params or ())
 
         if single:
             # liefert EIN Dict oder None
             row = cur.fetchone()
+            # SQLite Row zu Dict konvertieren
+            if row and isinstance(conn, sqlite3.Connection):
+                row = dict(row)
             print("db_read(single=True) ->", row)   # DEBUG
             return row
         else:
             # liefert Liste von Dicts (evtl. [])
             rows = cur.fetchall()
+            # SQLite Rows zu Dicts konvertieren
+            if rows and isinstance(conn, sqlite3.Connection):
+                rows = [dict(r) for r in rows]
             print("db_read(single=False) ->", rows)  # DEBUG
             return rows
 
@@ -91,13 +139,20 @@ def db_read(sql, params=None, single=False):
         conn.close()
 
 
-def db_write(sql, params=None):
+def db_upsert(user_id, points):
+    """Upsert für user_points (SQLite kompatibel)"""
     conn = get_conn()
     try:
         cur = conn.cursor()
-        cur.execute(sql, params or ())
+        if isinstance(conn, sqlite3.Connection):
+            # SQLite: INSERT OR REPLACE
+            sql = "INSERT OR REPLACE INTO user_points (user_id, points) VALUES (?, ?)"
+        else:
+            # MySQL: REPLACE
+            sql = "REPLACE INTO user_points (user_id, points) VALUES (%s, %s)"
+        cur.execute(sql, (user_id, points))
         conn.commit()
-        print("db_write OK:", sql, params)  # DEBUG
+        print("db_upsert OK:", user_id, points)  # DEBUG
     finally:
         try:
             cur.close()

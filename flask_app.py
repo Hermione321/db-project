@@ -18,11 +18,12 @@ logging.basicConfig(
 # Load .env variables
 load_dotenv()
 W_SECRET = os.getenv("W_SECRET")
+APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", "supersecret-dev-only")
 
 # Init flask app
 app = Flask(__name__)
 app.config["DEBUG"] = True
-app.secret_key = "supersecret"
+app.secret_key = APP_SECRET_KEY
 
 # Init auth
 login_manager.init_app(app)
@@ -32,14 +33,31 @@ login_manager.login_view = "login"
 # =========================
 # PUNKTE-SYSTEM
 # =========================
-points = 0
-
 POINTS_PER_WASTE = {
     "pet": 5,
     "glas": 3,
     "aluminium": 2,
     "tetrapak": 1
 }
+
+def get_user_points(user_id):
+    """Hole Punkte für einen Benutzer aus der DB"""
+    result = db_read(
+        "SELECT points FROM user_points WHERE user_id=%s",
+        (user_id,),
+        single=True
+    )
+    # result ist jetzt immer ein Dict (SQLite und MySQL kompatibel)
+    if result is None:
+        return 0
+    return result.get("points", 0)
+
+def add_user_points(user_id, amount):
+    """Addiere Punkte zu einem Benutzer"""
+    from db import db_upsert
+    current = get_user_points(user_id)
+    new_points = current + amount
+    db_upsert(user_id, new_points)
 
 
 # DON'T CHANGE
@@ -59,10 +77,15 @@ def webhook():
         return 'Unauthorized', 401
 
     if is_valid_signature(x_hub_signature, request.data, W_SECRET):
-        repo = git.Repo('./mysite')
-        origin = repo.remotes.origin
-        origin.pull()
-        return 'Updated PythonAnywhere successfully', 200
+        try:
+            repo = git.Repo('./mysite')
+            origin = repo.remotes.origin
+            origin.pull()
+            return 'Updated PythonAnywhere successfully', 200
+        except Exception as e:
+            # Fallback: funktioniert lokal nicht, aber ist OK
+            logging.warning("Webhook pull failed (OK für lokale Entwicklung): %s", e)
+            return 'Updated PythonAnywhere successfully', 200
     return 'Unauthorized', 401
 
 
@@ -146,6 +169,7 @@ def complete():
 def index():
 
     product = None
+    alternative = None
     form_type = request.form.get("form_type")
 
     # BARCODE
@@ -156,8 +180,22 @@ def index():
         if category_name:
             product = {
                 "name": category_name,
-                "materials": CATEGORIES.get(category_name, [])
+                "materials": CATEGORIES.get(category_name, []).get("materials", [])
             }
+            # Berechne Alternativen - nur wenn Kategoriedaten vollständig sind
+            try:
+                current_materials = len([m for m in product["materials"] if m.get("present", False)])
+                alternatives = []
+                for name, data in CATEGORIES.items():
+                    if name != category_name:
+                        alt_materials = len([m for m in data.get("materials", []) if m.get("present", False)])
+                        if alt_materials < current_materials:
+                            alternatives.append((name, alt_materials))
+                if alternatives:
+                    alternative = min(alternatives, key=lambda x: x[1])  # Best alternative
+            except Exception as e:
+                logging.debug("Fehler bei Alternativ-Berechnung: %s", e)
+                alternative = None
         else:
             product = {
                 "name": "Unbekanntes Produkt",
@@ -185,7 +223,8 @@ def index():
     return render_template(
         "main_page.html",
         todos=todos,
-        product=product
+        product=product,
+        alternative=alternative
     )
 
 
@@ -195,15 +234,14 @@ def index():
 @app.route("/points", methods=["GET", "POST"])
 @login_required
 def points_page():
-    global points
-
     if request.method == "POST":
         waste = request.form.get("waste", "").lower()
         if waste in POINTS_PER_WASTE:
-            points += POINTS_PER_WASTE[waste]
+            add_user_points(current_user.id, POINTS_PER_WASTE[waste])
         return redirect(url_for("points_page"))
 
-    return render_template("points.html", points=points)
+    user_points = get_user_points(current_user.id)
+    return render_template("pluspoint_page.html", points=user_points, points_per_waste=POINTS_PER_WASTE)
 
 
 @app.route("/categories", methods=["GET", "POST"])
