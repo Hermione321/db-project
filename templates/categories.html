@@ -19,6 +19,8 @@
 
   .stars {
     font-size: 18px;
+    display: inline-block;
+    margin-left: 6px;
   }
 
   .material-list {
@@ -27,6 +29,7 @@
     gap: 10px;
     padding-left: 0;
     list-style: none;
+    margin: 10px 0 0 0;
   }
 
   .material-item {
@@ -34,33 +37,36 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px;
-    height: 50px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     color: white;
     font-weight: bold;
-    font-size: 12px;
-    cursor: pointer;
+    font-size: 11px;
+    cursor: default;
     text-align: center;
+    user-select: none;
   }
 
   /* Tooltip */
   .material-item span.tooltip {
     visibility: hidden;
-    width: 130px;
+    width: 170px;
     background-color: #333;
     color: #fff;
     text-align: center;
-    border-radius: 6px;
-    padding: 5px;
+    border-radius: 8px;
+    padding: 7px 8px;
     position: absolute;
     z-index: 10;
-    bottom: 60px;
+    bottom: 66px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
+    line-height: 1.25;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.2s;
+    pointer-events: none;
   }
 
   .material-item:hover span.tooltip {
@@ -68,22 +74,31 @@
     opacity: 1;
   }
 
-  .link-button {
+  .btn {
     display: inline-block;
     padding: 10px 15px;
-    margin-top: 20px;
+    margin-top: 16px;
     background-color: #89CFF0;
     color: white;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: bold;
   }
 
-  .link-button:hover {
+  .btn:hover {
     background-color: #5bb0e3;
   }
 
-  /* Dynamische Hintergrundfarben */
+  .btn-secondary {
+    background-color: #e9eef2;
+    color: #1a1a1a;
+    margin-left: 10px;
+  }
+
+  .btn-secondary:hover {
+    background-color: #dbe3ea;
+  }
+
   .material-item[data-color="#1e90ff"] { background-color: #1e90ff; }
   .material-item[data-color="#f1c40f"] { background-color: #f1c40f; }
   .material-item[data-color="#27ae60"] { background-color: #27ae60; }
@@ -92,55 +107,103 @@
 </style>
 
 {% for name, data in categories.items() %}
-<div class="card">
+  {% set score = (data.score | default(0) | int) %}
+  {% if score < 0 %}{% set score = 0 %}{% endif %}
+  {% if score > 5 %}{% set score = 5 %}{% endif %}
 
-  <h3>{{ name }}</h3>
+  <div class="card">
+    <h3>{{ name }}</h3>
 
-  <p>🌍 {{ data.description | default('Keine Beschreibung verfügbar') }}</p>
+    <p>🌍 {{ data.description | default('Keine Beschreibung verfügbar') }}</p>
 
-  <p>💨 <b>CO₂:</b> {{ data.co2 | default('Noch keine Daten vorhanden') }}</p>
+    <p>💨 <b>CO₂:</b> {{ data.co2 | default('Noch keine Daten vorhanden') }}</p>
 
-  <p>⭐ <b>Punkte:</b> {{ data.points | default(0) }}</p>
+    <p>⭐ <b>Punkte:</b> {{ data.points | default(0) }}</p>
 
-  <p>♻️ <b>Tipp:</b> {{ data.tip | default('Kein Tipp verfügbar') }}</p>
+    <p>💡 <b>Tipp:</b> {{ data.tip | default('Kein Tipp verfügbar') }}</p>
 
-  <!-- Sterne-Ranking -->
-  <p>
-    🌱 <b>Umwelt-Ranking:</b>
-    {% if data.score is defined and data.score is integer %}
-        <span class="stars">
-        {% for i in range(data.score) %}
-            <span style="color: gold;">⭐</span>
+    <!-- Umwelt-Ranking (nur Score/Zahl, kein "recycelbar") -->
+    <p>
+      🌱 <b>Umwelt-Ranking:</b>
+      <span class="stars" aria-label="Umwelt-Ranking {{ score }} von 5">
+        {% for i in range(score) %}
+          <span style="color: gold;">⭐</span>
         {% endfor %}
-        {% for i in range(5 - data.score) %}
-            <span style="color: lightgray;">⭐</span>
+        {% for i in range(5 - score) %}
+          <span style="color: lightgray;">⭐</span>
         {% endfor %}
-        </span>
-    {% else %}
-        Kein Ranking verfügbar
+      </span>
+      <span style="margin-left: 6px;">({{ score }}/5)</span>
+    </p>
+
+    <!-- Web-Link pro Kategorie (falls vorhanden) -->
+    {% if data.web_url is defined and data.web_url %}
+      <p>
+        🔗 <a href="{{ data.web_url }}" target="_blank" rel="noopener noreferrer">Mehr Infos (Web)</a>
+      </p>
     {% endif %}
-  </p>
 
-  <!-- Materialien -->
-  <h4>Materialien</h4>
-  {% if data.materials is defined and data.materials | length > 0 %}
-    <ul class="material-list">
+    <!-- Materialien -->
+    <h4>Materialien</h4>
+
+    {% if data.materials is defined and data.materials | length > 0 %}
+      <ul class="material-list">
+        {% for material in data.materials %}
+          {% set m_score = (material.score | default(material.points | default(0)) | int) %}
+          {% if m_score < 0 %}{% set m_score = 0 %}{% endif %}
+          {% if m_score > 5 %}{% set m_score = 5 %}{% endif %}
+
+          <li class="material-item" data-color="{{ material.color | default('gray') }}">
+            {{ (material.short | default(material.name | default('MAT')))[:3] | upper }}
+
+            <span class="tooltip">
+              <b>{{ material.name | default('Material') }}</b><br>
+              Punkte: {{ material.points | default(m_score) }}<br>
+              Ranking: {{ m_score }}/5
+              {% if material.note is defined and material.note %}
+                <br>{{ material.note }}
+              {% endif %}
+              {% if material.web_url is defined and material.web_url %}
+                <br><span style="opacity:0.9;">Web: vorhanden</span>
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <!-- Material-Weblinks optional als Liste darunter (klickbar) -->
+      {% set any_material_links = false %}
       {% for material in data.materials %}
-        {% set status = '✅' if material.present else '❌' %}
-        <li class="material-item" data-color="{{ material.color | default('gray') }}">
-          {{ material.name[:3] | upper }}
-          <span class="tooltip">{{ status }}</span>
-        </li>
+        {% if material.web_url is defined and material.web_url %}
+          {% set any_material_links = true %}
+        {% endif %}
       {% endfor %}
-    </ul>
-  {% else %}
-    <p>Keine Materialien verfügbar</p>
-  {% endif %}
 
-</div>
+      {% if any_material_links %}
+        <p style="margin-top: 12px;">
+          🔗 <b>Material-Links:</b><br>
+          {% for material in data.materials %}
+            {% if material.web_url is defined and material.web_url %}
+              • <a href="{{ material.web_url }}" target="_blank" rel="noopener noreferrer">
+                  {{ material.name | default('Material') }}
+                </a><br>
+            {% endif %}
+          {% endfor %}
+        </p>
+      {% endif %}
+
+    {% else %}
+      <p>Keine Materialien verfügbar</p>
+    {% endif %}
+
+  </div>
 {% endfor %}
 
-<!-- Zurück-Button -->
-<a href="{{ url_for('index') }}" class="link-button">⬅ Zurück</a>
+<!-- Navigation -->
+<a href="{{ url_for('index') }}" class="btn">⬅ Zurück</a>
+
+{% if 'pluspoint_page' in (globals() | default({})) %}
+  <a href="{{ url_for('pluspoint_page') }}" class="btn btn-secondary">➕ Pluspunkte</a>
+{% endif %}
 
 {% endblock %}
