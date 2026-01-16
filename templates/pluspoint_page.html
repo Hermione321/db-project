@@ -2,31 +2,16 @@
 
 {% block content %}
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f8ff;
-    padding: 20px;
-  }
-
-  h1, h2, h3 {
-    color: #333;
-  }
-
   .card {
-    background: #ffffff;
+    background: white;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 25px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
 
-  .card h2 {
-    margin-top: 0;
-  }
-
   button {
     padding: 10px 15px;
-    margin: 5px 10px 5px 0;
     border-radius: 6px;
     border: none;
     background-color: #89CFF0;
@@ -40,7 +25,7 @@
   }
 
   .points {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: bold;
     color: #0077b6;
   }
@@ -49,18 +34,20 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 10px;
   }
 </style>
 
 <h1>🏆 Deine Pluspunkte</h1>
 
 <div class="card">
+
   <h2>Aktueller Punktestand:</h2>
   <p class="points">{{ points }} Punkte</p>
 
   <h3>Abfall auswählen:</h3>
+
   <div class="waste-buttons">
+
     <form method="POST">
       <button name="waste" value="pet">PET (+5)</button>
     </form>
@@ -74,8 +61,9 @@
     </form>
 
     <form method="POST">
-      <button name="waste" value="tetrapak">Tetrapack (+1)</button>
+      <button name="waste" value="papier">Papier (+1)</button>
     </form>
+
   </div>
 </div>
 {% endblock %}

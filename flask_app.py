@@ -37,7 +37,7 @@ POINTS_PER_WASTE = {
     "pet": 5,
     "glas": 3,
     "aluminium": 2,
-    "tetrapak": 1
+    "papier": 1
 }
 
 def get_user_points(user_id):
