@@ -66,6 +66,26 @@
     <button type="button" onclick="loadRecycling()">Standort verwenden</button>
     <div id="map" style="height: 400px; margin-top: 15px; border-radius: 12px;"></div>
   </div>
+  
+
+  <!-- ENTSORGUNGSSTELLEN LISTE -->
+<div class="card-soft">
+  <h2>♻️ Entsorgungsstellen (Liste)</h2>
+
+  {% if entsorgungsstellen %}
+    <ul class="recycling-list">
+      {% for stelle in entsorgungsstellen %}
+        <li class="recycling-item">
+          <strong>{{ stelle.name }}</strong><br>
+          📍 {{ stelle.adresse }}<br>
+          🏷️ {{ stelle.typ }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Keine Entsorgungsstellen verfügbar.</p>
+  {% endif %}
+</div>
 
   <script>
     function loadRecycling() {
