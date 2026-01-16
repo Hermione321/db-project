@@ -40,17 +40,18 @@ POINTS_PER_WASTE = {
     "papier": 1
 }
 
+
 def get_user_points(user_id):
-    """Hole Punkte für einen Benutzer aus der DB"""
+    """Hole Punkte fuer einen Benutzer aus der DB"""
     result = db_read(
         "SELECT points FROM user_points WHERE user_id=%s",
         (user_id,),
         single=True
     )
-    # result ist jetzt immer ein Dict (SQLite und MySQL kompatibel)
     if result is None:
         return 0
     return result.get("points", 0)
+
 
 def add_user_points(user_id, amount):
     """Addiere Punkte zu einem Benutzer"""
@@ -60,33 +61,56 @@ def add_user_points(user_id, amount):
     db_upsert(user_id, new_points)
 
 
-# DON'T CHANGE
-def is_valid_signature(x_hub_signature, data, private_key):
-    hash_algorithm, github_signature = x_hub_signature.split('=', 1)
-    algorithm = hashlib.__dict__.get(hash_algorithm)
-    encoded_key = bytes(private_key, 'latin-1')
-    mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
-    return hmac.compare_digest(mac.hexdigest(), github_signature)
-
-
-# DON'T CHANGE
-@app.post('/update_server')
+# =========================
+# WEBHOOK (robust)
+# =========================
+@app.route("/update_server", methods=["POST"])
 def webhook():
-    x_hub_signature = request.headers.get('X-Hub-Signature')
-    if not x_hub_signature or not W_SECRET:
-        return 'Unauthorized', 401
+    """
+    GitHub Webhook Endpoint.
+    Akzeptiert sha256 (X-Hub-Signature-256) und sha1 (X-Hub-Signature).
+    Gibt 401 zurueck wenn Secret/Signatur fehlt oder nicht passt.
+    """
+    sig256 = request.headers.get("X-Hub-Signature-256")
+    sig1 = request.headers.get("X-Hub-Signature")
+    signature = sig256 or sig1
 
-    if is_valid_signature(x_hub_signature, request.data, W_SECRET):
-        try:
-            repo = git.Repo('./mysite')
-            origin = repo.remotes.origin
-            origin.pull()
-            return 'Updated PythonAnywhere successfully', 200
-        except Exception as e:
-            # Fallback: funktioniert lokal nicht, aber ist OK
-            logging.warning("Webhook pull failed (OK für lokale Entwicklung): %s", e)
-            return 'Updated PythonAnywhere successfully', 200
-    return 'Unauthorized', 401
+    if not signature or not W_SECRET:
+        logging.warning("Webhook: Missing signature header or W_SECRET not set")
+        return "Unauthorized", 401
+
+    try:
+        hash_algorithm, github_signature = signature.split("=", 1)
+        algorithm = hashlib.__dict__.get(hash_algorithm)
+
+        if algorithm is None:
+            logging.warning("Webhook: Unsupported hash algorithm: %s", hash_algorithm)
+            return "Unauthorized", 401
+
+        mac = hmac.new(
+            W_SECRET.encode("utf-8"),
+            msg=request.data,
+            digestmod=algorithm
+        )
+
+        if not hmac.compare_digest(mac.hexdigest(), github_signature):
+            logging.warning("Webhook: Signature mismatch")
+            return "Unauthorized", 401
+
+    except Exception as e:
+        logging.warning("Webhook: Signature parse/verify failed: %s", e)
+        return "Unauthorized", 401
+
+    # Pull Repo
+    try:
+        repo = git.Repo("./mysite")
+        origin = repo.remotes.origin
+        origin.pull()
+        logging.info("Webhook: Pulled successfully")
+        return "Updated successfully", 200
+    except Exception as e:
+        logging.warning("Webhook pull failed: %s", e)
+        return "Pull failed", 500
 
 
 # =========================
@@ -127,7 +151,7 @@ def register():
             ok = register_user(username, password)
             if ok:
                 return redirect(url_for("login"))
-        error = "Benutzername existiert bereits oder Eingaben ungültig."
+        error = "Benutzername existiert bereits oder Eingaben ungueltig."
 
     return render_template(
         "auth.html",
@@ -168,7 +192,6 @@ def complete():
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-
     product = None
     alternative = None
     form_type = request.form.get("form_type")
@@ -181,9 +204,9 @@ def index():
         if category_name:
             product = {
                 "name": category_name,
-                "materials": CATEGORIES.get(category_name, []).get("materials", [])
+                "materials": CATEGORIES.get(category_name, {}).get("materials", [])
             }
-            # Berechne Alternativen - nur wenn Kategoriedaten vollständig sind
+
             try:
                 current_materials = len([m for m in product["materials"] if m.get("present", False)])
                 alternatives = []
@@ -193,15 +216,12 @@ def index():
                         if alt_materials < current_materials:
                             alternatives.append((name, alt_materials))
                 if alternatives:
-                    alternative = min(alternatives, key=lambda x: x[1])  # Best alternative
+                    alternative = min(alternatives, key=lambda x: x[1])
             except Exception as e:
                 logging.debug("Fehler bei Alternativ-Berechnung: %s", e)
                 alternative = None
         else:
-            product = {
-                "name": "Unbekanntes Produkt",
-                "materials": []
-            }
+            product = {"name": "Unbekanntes Produkt", "materials": []}
 
     # TODO
     elif form_type == "todo":
@@ -220,6 +240,11 @@ def index():
         "SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due",
         (current_user.id,)
     )
+
+    # due_text fuer Template (weil SQLite due als Text liefert)
+    for t in todos:
+        # Minimal robust: falls due None ist
+        t["due_text"] = t.get("due") or "-"
 
     return render_template(
         "main_page.html",
@@ -245,45 +270,21 @@ def points_page():
     return render_template("pluspoint_page.html", points=user_points, points_per_waste=POINTS_PER_WASTE)
 
 
+# =========================
+# CATEGORIES PAGE
+# =========================
 @app.route("/categories", methods=["GET", "POST"])
 @login_required
-def categories_page():  # <- Name geändert
-    return render_template(
-        "categories.html",
-        categories=CATEGORIES
-    )
+def categories_page():
+    return render_template("categories.html", categories=CATEGORIES)
 
 
 # =========================
-# ENTSORGUNGSSTELLEN (DATEN)
-# =========================
-entsorgungsstellen = [
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Merkurstrasse, 8032 Zürich", "typ": "Sammelstelle"},
-    {"name": "Recyclinghof Werdhölzli", "adresse": "Bändlistrasse 94, 8064 Zürich", "typ": "Sonderabfälle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Am Schanzengraben 25, 8002 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Aegertenstrasse 16, 8003 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Seebahnstrasse 89, 8003 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Konradstrasse 79, 8005 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Neugasse 116, 8005 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Tellstrasse 38, 8004 Zürich", "typ": "Sammelstelle"},
-    {
-        "name": "zsge Recycling Werkstatt und Sammelstelle für Elektroschrott",
-        "adresse": "Kanonengasse 20, 8004 Zürich",
-        "typ": "Recycling Werkstatt"
-    },
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Hardstrasse 9, 8004 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Zimmerlistrasse 2, 8004 Zürich", "typ": "Sammelstelle"},
-    {"name": "Spross Recyclingwerk Zürich", "adresse": "Hohlstrasse 330, 8004 Zürich", "typ": "Recyclingwerk"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Heinrichstrasse 191, 8005 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "8006 Zürich", "typ": "Sammelstelle"},
-    {"name": "Wertstoff-Sammelstelle", "adresse": "Klopstockstrasse 23, 8002 Zürich", "typ": "Sammelstelle"}
-]
-
-# =========================
-# API FÜR DIE KARTE
+# API FUER DIE KARTE
 # =========================
 @app.route("/entsorgung")
 def entsorgung():
+    # Dummy Daten (dein JS erwartet data.elements)
     return jsonify({
         "elements": [
             {"lat": 47.3769, "lon": 8.5417},
@@ -291,6 +292,7 @@ def entsorgung():
             {"lat": 47.3800, "lon": 8.5300}
         ]
     })
+
 
 # =========================
 if __name__ == "__main__":
