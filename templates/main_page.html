@@ -107,3 +107,54 @@
 
 </div>
 {% endblock %}
+
+# -------------------------
+# Pluspunkte logic
+# -------------------------
+
+POINTS_PER_WASTE = {
+    "pet": 2,
+    "glas": 3,
+    "aluminium": 2,
+    "papier": 1,
+}
+
+def get_user_points(user_id):
+    row = db_read(
+        "SELECT COALESCE(pluspoints, 0) FROM users WHERE id = ?",
+        (user_id,),
+        one=True
+    )
+    return row[0] if row else 0
+
+def add_user_points(user_id, amount):
+    db_write(
+        "UPDATE users SET pluspoints = COALESCE(pluspoints, 0) + ? WHERE id = ?",
+        (amount, user_id)
+    )
+
+
+# -------------------------
+# MAIN PAGE (GET + POST)
+# -------------------------
+
+@app.route("/", methods=["GET", "POST"])
+def main_page():
+    user_id = session["user_id"]
+    message = None
+
+    if request.method == "POST":
+        waste = request.form.get("waste")
+
+        if waste in POINTS_PER_WASTE:
+            amount = POINTS_PER_WASTE[waste]
+            add_user_points(user_id, amount)
+            message = f"+{amount} Punkte gutgeschrieben 🎉"
+
+    points = get_user_points(user_id)
+
+    return render_template(
+        "main.html",
+        points=points,
+        message=message
+    )
