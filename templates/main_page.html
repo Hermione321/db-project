@@ -5,33 +5,6 @@
 
   <h1>♻️ TrashUp – Abfall-App</h1>
 
-  <!-- TODOS -->
-  <div class="card-soft">
-    <h2>Deine Todos</h2>
-
-    <form method="POST">
-      <input type="hidden" name="form_type" value="todo">
-      <input type="text" name="contents" placeholder="Neues Todo eingeben" required>
-      <input type="datetime-local" name="due_at" required>
-      <button type="submit">Hinzufügen</button>
-    </form>
-
-    {% if todos %}
-      <ul>
-        {% for todo in todos %}
-          <li class="todo-item">
-            <form action="{{ url_for('complete') }}" method="POST" style="margin:0;">
-              <input type="hidden" name="id" value="{{ todo.id }}">
-              <input type="checkbox" onchange="this.form.submit()">
-              {{ todo.content }} (Fällig: {{ todo.due_text }})
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Keine Todos vorhanden 🎉</p>
-    {% endif %}
-  </div>
 
   <!-- BARCODE -->
   <div class="card-soft">
