@@ -60,12 +60,13 @@
     <a class="link-button" href="{{ url_for('points_page') }}">Zu den Pluspunkten</a>
   </div>
 
-  <!-- KARTE -->
-  <div class="card-soft">
-    <h2>🗺️ Entsorgungsstellen in deiner Nähe</h2>
-    <button type="button" onclick="loadRecycling()">Standort verwenden</button>
-    <div id="map" style="height: 400px; margin-top: 15px; border-radius: 12px;"></div>
-  </div>
+  
+  <!-- Folium Map -->
+<div class="card-soft">
+  <h2>🗺️ Entsorgungsstellen-Karte</h2>
+  {{ folium_map|safe }}
+</div>
+
   
 
   <!-- ENTSORGUNGSSTELLEN LISTE -->
